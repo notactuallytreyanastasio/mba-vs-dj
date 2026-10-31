@@ -71,6 +71,26 @@
   .aiclose { position: absolute; top: 6px; right: 6px; }
   .aispin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--rule); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -1px; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  #previewbar { position: absolute; left: 12px; right: 12px; top: 34px; background: #1d1b18; color: var(--paper); padding: 6px 10px; border-radius: 3px; font-size: 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; z-index: 4; }
+  #previewbar[hidden] { display: none; }
+  #previewbar button { color: var(--ink); background: var(--paper); border-color: var(--paper); }
+  body.previewing svg#tree g.hit { pointer-events: none; }
+  body.previewing #aiform { opacity: .45; pointer-events: none; }
+  g.ghost { opacity: .6; }
+  g.ghost .shape { stroke-dasharray: 4 3; stroke: var(--accent); }
+  g.ghost .nlabel { fill: var(--accent); font-style: italic; }
+  path.edge.ghost { stroke-dasharray: 6 5; stroke: var(--accent); }
+  .idea { border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; margin: 8px 0; background: #fff; }
+  .idea:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(194,65,12,.12); }
+  .idea.added, .idea.discarded { opacity: .6; background: transparent; }
+  .idea.discarded b { text-decoration: line-through; }
+  .ideahead { font-size: 15px; }
+  .ideakind { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; border: 1px solid var(--muted); border-radius: 3px; padding: 0 4px; color: var(--muted); }
+  .ideanums { font-family: var(--mono); font-size: 12.5px; margin: 4px 0; }
+  .ideawhy { font-size: 14px; line-height: 1.4; margin: 4px 0; }
+  .ideaimpact { font-size: 13px; background: #f6efe4; padding: 3px 6px; border-radius: 3px; margin: 4px 0; }
+  .ideaimpact .flip { color: var(--accent); }
+  details summary { cursor: pointer; margin: 10px 0 4px; }
   .pilldemo { font-family: var(--mono); font-size: 12px; border: 1px solid var(--muted); border-radius: 8px; padding: 0 6px; }
   #mathwrap { overflow: auto; padding: 10px 20px 20px; }
 
@@ -190,6 +210,7 @@
       <svg id="tree" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="zoomctl"><button class="small" id="zin" title="Zoom in">+</button><button class="small" id="zout" title="Zoom out">−</button><button class="small" id="zfit" title="Fit the tree to the screen">Fit</button></div>
       <div id="tip" hidden></div>
+      <div id="previewbar" hidden><span></span> <button class="small" id="previewexit">Back to now</button></div>
     </div>
     <form id="aiform" autocomplete="off">
       <input id="aiinput" maxlength="600" placeholder="Tell the tree what to change: “add a producer outcome for DJs, 5%, $600k”">
@@ -201,11 +222,13 @@
   <aside>
     <div class="tabs">
       <button data-tab="edit" class="on">Edit</button>
+      <button data-tab="ideas">Ideas</button>
       <button data-tab="poll">Poll</button>
       <button data-tab="history">History</button>
       <button data-tab="deciduous">Deciduous</button>
     </div>
     <div class="tabpanel" id="tab-edit"></div>
+    <div class="tabpanel" id="tab-ideas" hidden></div>
     <div class="tabpanel" id="tab-poll" hidden></div>
     <div class="tabpanel" id="tab-history" hidden></div>
     <div class="tabpanel" id="tab-deciduous" hidden></div>
@@ -259,6 +282,10 @@ let unit = "$k";       // long form, from the root's `unit=`
 const UNIT = "$k";
 let rootQuestion = "";
 let sourceInfo = "";
+let ideas = [];           // the idea board: branches the class might add
+let baseIdeas = [];       // ideas parked in deciduous by earlier classes
+let versions = [];        // every logged change with a copy of the tree, for replay
+let preview = null;       // {t, w, label} while replaying an older version
 
 function parseKV(text) {
   const out = {};
@@ -300,6 +327,15 @@ function treeFromDeciduous(g) {
       .sort((a, b) => a.created_at.localeCompare(b.created_at))
       .forEach(obs => {
         const r = parseKV(obs.description);
+        if (r.idea_status) {        // a parked or discarded idea from an earlier class
+          let kids = [];
+          try { kids = r.idea_children ? JSON.parse(r.idea_children) : []; } catch { kids = []; }
+          baseIdeas.push({ id: "i" + obs.id, cid: obs.change_id, parentId: node.id, kind: r.idea_kind === "option" ? "option" : "outcome",
+            title: obs.title.replace(/^Idea \((parked|discarded)\): /, ""), why: r.idea_why || "", p: num(r.idea_p, 0.1), payoff: num(r.idea_payoff),
+            joy: num(r.idea_joy, 5), cost: num(r.idea_cost), children: kids, source: r.idea_source || "class",
+            status: r.idea_status, loadedStatus: r.idea_status, at: obs.created_at });
+          return;
+        }
         const rev = { title: obs.title, at: obs.created_at, cid: obs.change_id };
         if (r.p !== undefined) { rev.p = num(r.p); node.p = rev.p; }
         ["payoff", "joy", "cost"].forEach(k => { if (r[k] !== undefined) { rev[k] = num(r[k]); node[k] = rev[k]; } });
@@ -328,8 +364,11 @@ const clone = o => JSON.parse(JSON.stringify(o));
 
 /* Roll back the tree: every node gets a value.
  *   end:      payoff + w*joy - cost
- *   chance:   own - cost + sum(p_i * v_i)
- *   decision: own - cost + max(v_i)
+ *   chance:   payoff - cost + sum(p_i * v_i)
+ *   decision: payoff - cost + max(v_i)
+ * A grown end point keeps its payoff as money earned up to there.
+ * Satisfaction only counts where you end up, so growing a node never
+ * counts it twice.
  * Returns a map id -> {v, best, sumP, terms}.
  */
 function rollback(root, w) {
@@ -337,7 +376,7 @@ function rollback(root, w) {
   (function go(n) {
     n.children.forEach(go);
     const k = kindOf(n);
-    const own = n.payoff + w * n.joy - n.cost;
+    const own = n.payoff - n.cost + (k === "end" ? w * n.joy : 0);
     let v, best = null, sumP = null;
     if (k === "end") v = own;
     else if (k === "chance") {
@@ -369,20 +408,28 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
  * State, undo, persistence
  * ------------------------------------------------------------------ */
 function save() {
-  localStorage.setItem(STORE, JSON.stringify({ tree, joyWeight, polls, gut, snapshots, changelog, baseStamp: baseStamp() }));
+  localStorage.setItem(STORE, JSON.stringify({ tree, joyWeight, polls, gut, snapshots, changelog, ideas, versions, baseStamp: baseStamp() }));
+}
+/* Every logged change also keeps a copy of the tree, so the History tab can
+ * replay how the tree grew, step by step. */
+function logChange(text) {
+  const now = new Date();
+  changelog.unshift({ at: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text });
+  versions.push({ at: now.toISOString(), text, t: clone(tree), w: joyWeight });
+  if (versions.length > 300) versions.shift();
 }
 function baseStamp() { return JSON.stringify(base).length + ":" + (base.revisionsCount || 0); }
 function commit(desc, mutate) {
   undoStack.push(JSON.stringify({ tree, joyWeight }));
   if (undoStack.length > 200) undoStack.shift();
   mutate();
-  if (desc) changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: desc });
+  if (desc) logChange(desc);
   save(); render();
 }
 function undo() {
   const s = undoStack.pop(); if (!s) return;
   const o = JSON.parse(s); tree = o.tree; joyWeight = o.joyWeight;
-  changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: "undo" });
+  logChange("undo");
   save(); render();
 }
 
@@ -399,7 +446,7 @@ function undo() {
 const COL = 410, ROW = 92, HSEG = 300, PILL_PX = 300;   // dragging 300px moves p by 100%
 let collapsed = new Set();
 let pulseIds = new Set();
-let zoom = null, lastShape = "", prevPos = {};
+let zoom = null, lastShape = "", prevPos = {}, ghostRefit = false;
 
 const SHAPES = {
   decision: "M-12,-12h24v24h-24z",
@@ -476,7 +523,7 @@ function drawTree(vals, instant = false) {
       .attr("d", d => { const f = from(d); return edgeD(f.x, f.y, f.x + 14 + HSEG, f.y); }).attr("stroke-opacity", 0),
     update => update,
     exit => tr(exit).attr("stroke-opacity", 0).remove()
-  ).classed("best", d => best.has(d.data.id))
+  ).classed("best", d => best.has(d.data.id)).classed("ghost", d => ghostIds.has(d.data.id))
     .call(s => tr(s).attr("d", d => edgeD(d.parent.px, d.parent.py, d.px, d.py)).attr("stroke-width", d => best.has(d.data.id) ? Math.max(3, width(d)) : width(d)).attr("stroke-opacity", 1));
 
   /* branch labels: title, probability pill, cost, prune marks */
@@ -498,7 +545,7 @@ function drawTree(vals, instant = false) {
     update => update,
     exit => tr(exit).attr("opacity", 0).remove()
   );
-  lab.classed("sel", d => d.data.id === selectedId).classed("pulse", d => pulseIds.has(d.data.id));
+  lab.classed("sel", d => d.data.id === selectedId).classed("pulse", d => pulseIds.has(d.data.id)).classed("ghost", d => ghostIds.has(d.data.id));
   tr(lab).attr("transform", d => `translate(${d.px},${d.py})`).attr("opacity", 1);
   lab.select("text.nlabel").text(d => d.data.title);
   lab.each(function (d) {
@@ -531,7 +578,7 @@ function drawTree(vals, instant = false) {
       const p = d.parent && byId[d.parent.data.id]; return p ? `translate(${p.px},${p.py})` : null;
     }).remove()
   );
-  nd.classed("sel", d => d.data.id === selectedId).classed("pulse", d => pulseIds.has(d.data.id));
+  nd.classed("sel", d => d.data.id === selectedId).classed("pulse", d => pulseIds.has(d.data.id)).classed("ghost", d => ghostIds.has(d.data.id));
   tr(nd).attr("transform", d => `translate(${d.px},${d.py})`).attr("opacity", 1);
   nd.each(function (d) {
     const g = d3.select(this), n = d.data, k = kindOf(n), v = vals[n.id].v;
@@ -547,7 +594,9 @@ function drawTree(vals, instant = false) {
     const target = isEnd ? v + n.cost : v;
     const textEl = g.select(isEnd ? "text.leafval" : "text.ev");
     const extra = isEnd && joyWeight && n.joy ? `  (${money(n.payoff)} + ${n0(joyWeight)}×${n0(n.joy)} joy)` : "";
-    const fmt = x => (isEnd ? "" : prefix) + money(x) + extra;
+    // under a grown node an end point's money comes on top of what was earned getting there
+    const onTop = isEnd && d.ancestors().slice(1).some(a => a.data.payoff && a.depth > 0);
+    const fmt = x => (isEnd ? (onTop ? "+" : "") : prefix) + money(x) + extra;
     if (!isEnd) {
       const w = fmt(target).length * 7.9 + 12, x = d.depth === 0 ? -12 : -w / 2;
       g.select("rect.evbox").attr("x", x).attr("width", w);
@@ -579,7 +628,14 @@ function drawTree(vals, instant = false) {
   const y0 = d3.min(nodes, d => d.py) - 82, y1 = d3.max(nodes, d => d.py) + 40;
   bounds = { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
   const shape = nodes.map(d => d.data.id).join(",");
-  if (shape !== lastShape) { const first = !lastShape; lastShape = shape; first ? fit(false) : setTimeout(() => fit(true), 60); }
+  if (ghostIds.size) {
+    // a preview: keep the view still unless the ghost lands off screen
+    const t = d3.zoomTransform(svg.node()), W = svg.node().clientWidth, H = svg.node().clientHeight;
+    const vx0 = -t.x / t.k, vy0 = -t.y / t.k, vx1 = (W - t.x) / t.k, vy1 = (H - t.y) / t.k;
+    if (bounds.x < vx0 || bounds.y < vy0 || bounds.x + bounds.width > vx1 || bounds.y + bounds.height > vy1) { ghostRefit = true; fit(true); }
+  }
+  else if (ghostRefit) { ghostRefit = false; fit(true); }
+  else if (shape !== lastShape) { const first = !lastShape; lastShape = shape; first ? fit(false) : setTimeout(() => fit(true), 60); }
   pulseIds = new Set();
 }
 
@@ -605,7 +661,7 @@ function hover(d, vals, e) {
   }
   if (k === "decision") h += `<div>Best: <b>${esc(find(v.best).title)}</b>, ${money(v.v)}</div>`;
   else if (parent && kindOf(parent) === "decision") {
-    const bv = vals[parent.id].v - (parent.payoff + joyWeight * parent.joy - parent.cost);
+    const bv = vals[parent.id].v - (parent.payoff - parent.cost);
     h += `<div>EV ${money(v.v)}${vals[parent.id].best === n.id ? ", the best choice" : `, ${money(bv - v.v)} behind the best`}</div>`;
   }
   const hint = [];
@@ -642,7 +698,7 @@ function beginPEdit(id) {
 function endPEdit(s, how) {
   const now = find(s.id).p;
   if (Math.abs(now - s.start) < 1e-9) { undoStack.pop(); return; }
-  changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `P(${find(s.id).title}) ${pct(s.start)} → ${pct(now)} (${how}; siblings rebalanced)` });
+  logChange(`P(${find(s.id).title}) ${pct(s.start)} → ${pct(now)} (${how}; siblings rebalanced)`);
   save(); render();
 }
 const pillDrag = d3.drag()
@@ -680,7 +736,6 @@ function drawMath(vals) {
     };
     const tail = [];
     if (n.payoff) tail.push(`+ ${money(n.payoff)}`);
-    if (joyWeight && n.joy) tail.push(`+ ${n0(joyWeight)}×${n0(n.joy)}`);
     if (n.cost) tail.push(`− ${money(n.cost)}`);
     let line;
     if (k === "chance") {
@@ -802,6 +857,8 @@ function drawEdit(vals) {
       h += `<div class="warnbox">The outcomes under “${esc(parent.title)}” add up to ${pct(s)}. Probabilities of everything that can happen must total 100%.
         <div class="btnrow"><button class="small" id="normalize">Scale them to 100%</button><button class="small" id="absorb">Let the others absorb it</button></div></div>`;
   }
+  if (k !== "end" && n !== tree && n.payoff && n.kind === "outcome")
+    h += `<label class="field"><span>Earned to here (${UNIT})</span><input type="number" id="f-payoff" step="50" value="${n.payoff}"></label>`;
   if (k === "end") {
     h += `<label class="field"><span>Earnings (${UNIT})</span><input type="number" id="f-payoff" step="50" value="${n.payoff}"></label>
       <label class="field"><span>Satisfaction</span><div class="prow"><input type="range" id="f-joy" min="0" max="10" step="0.5" value="${n.joy}"><input type="number" id="f-joyn" min="0" max="10" step="0.5" value="${n.joy}"></div></label>`;
@@ -809,11 +866,14 @@ function drawEdit(vals) {
   if (n !== tree) h += `<label class="field"><span>Cost (${UNIT})</span><input type="number" id="f-cost" step="5" value="${n.cost}"></label>`;
   if (n.note) h += `<p class="hint">${esc(n.note)}</p>`;
   h += `<div class="btnrow">`;
-  if (k !== "end" || n.kind === "option") h += `<button class="small" id="addout">+ outcome</button>`;
-  if (n === tree) h += `<button class="small" id="addopt">+ path to choose</button>`;
+  const hasOut = n.children.some(c => c.kind === "outcome"), hasOpt = n.children.some(c => c.kind === "option");
+  if (n !== tree && !hasOpt) h += `<button class="small" id="addout">${k === "end" ? "+ what could happen next" : "+ outcome"}</button>`;
+  if (!hasOut) h += `<button class="small" id="addopt">${n === tree ? "+ path to choose" : k === "end" ? "+ a choice they'd face next" : "+ choice"}</button>`;
+  h += `<button class="small" id="brainstorm">Brainstorm ${k === "end" ? "what happens next" : "ideas here"}</button>`;
   if (k === "chance") h += `<button class="small" id="topoll">Poll the class on this</button>`;
   if (n !== tree) h += `<button class="small" id="delnode">Delete</button>`;
   h += `</div>`;
+  if (k === "end" && n !== tree) h += `<p class="hint">Growing an end point: its ${money(n.payoff)} stays as what was earned up to here, and whatever you add below comes on top of it.</p>`;
   if (n.revisions && n.revisions.length) {
     h += `<h2>Revisions in deciduous</h2><div class="log">` +
       n.revisions.map(r => `<div>${esc(r.at.slice(0, 10))} ${esc(r.title)}</div>`).join("") + `</div>`;
@@ -833,7 +893,7 @@ function drawEdit(vals) {
     });
     on(id, "change", e => {
       const now = find(n.id)[key];
-      if (dragStart !== null) changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `${label}(${n.title}) ${fmt(dragStart)} → ${fmt(now)}` });
+      if (dragStart !== null) logChange(`${label}(${n.title}) ${fmt(dragStart)} → ${fmt(now)}`);
       dragStart = null; save(); render();
     });
   };
@@ -862,9 +922,10 @@ function drawEdit(vals) {
   });
   on("addopt", "click", () => {
     const id = "n" + Date.now();
-    commit(`added path “New path”`, () => tree.children.push({ id, cid: null, kind: "option", title: "New path", p: null, cost: 0, payoff: 0, joy: 5, question: "", note: "", revisions: [], children: [] }));
+    commit(`added a choice under ${n.title}`, () => find(n.id).children.push({ id, cid: null, kind: "option", title: "New choice", p: null, cost: 0, payoff: 0, joy: 5, question: "", note: "", revisions: [], children: [] }));
     selectedId = id; render();
   });
+  on("brainstorm", "click", () => { ideaFocus = n.id; showTab("ideas"); brainstorm(); });
   on("delnode", "click", () => {
     if (!confirm(`Delete “${n.title}” and everything under it?`)) return;
     commit(`deleted “${n.title}”`, () => { const par = find(parent.id); par.children = par.children.filter(c => c.id !== n.id); });
@@ -881,7 +942,7 @@ function bindJoy() {
     joyWeight = +r.value; b.value = r.value; render(true, true);
   });
   r.addEventListener("change", () => {
-    changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `satisfaction worth ${money(start ?? joyWeight)} → ${money(joyWeight)} per point` });
+    logChange(`satisfaction worth ${money(start ?? joyWeight)} → ${money(joyWeight)} per point`);
     start = null; save(); render();
   });
   b.addEventListener("change", () => { const v = Math.max(0, +b.value), old = joyWeight; commit(`satisfaction worth ${money(old)} → ${money(v)} per point`, () => joyWeight = v); });
@@ -948,7 +1009,7 @@ function drawHistory() {
   const cur = rootSummary(tree, joyWeight);
   const names = cur.evs.map(e => e.title);
   const rows = [{ name: "From deciduous", t: base, w: 0, fixed: "base" }, ...snapshots.map((s, i) => ({ ...s, i })), { name: "Now", t: tree, w: joyWeight, fixed: "now" }];
-  let h = `<h2>Snapshots</h2><div class="btnrow"><input type="text" id="snapname" placeholder="e.g. After the class poll" style="flex:1;border:1px solid var(--rule);padding:3px 6px"><button class="primary" id="snap">Save</button></div>
+  let h = replaySection() + `<h2>Snapshots</h2><div class="btnrow"><input type="text" id="snapname" placeholder="e.g. After the class poll" style="flex:1;border:1px solid var(--rule);padding:3px 6px"><button class="primary" id="snap">Save</button></div>
     <table><tr><th></th>${names.map(n => `<th style="text-align:right">${esc(n)}</th>`).join("")}<th>Pick</th></tr>`;
   rows.forEach(r => {
     const s = rootSummary(r.t, r.w);
@@ -960,10 +1021,12 @@ function drawHistory() {
     <div class="btnrow"><button id="resetall">Reset everything to the deciduous graph</button></div>
     <h2>What changed, newest first</h2><div class="log">${changelog.map(c => `<div>${esc(c.at)} ${esc(c.text)}</div>`).join("") || `<span class="hint">Nothing yet.</span>`}</div>`;
   el.innerHTML = h;
+  bindReplay(el);
+  if (preview) { const k = steps().findIndex(s => s.t === preview.t); if (k >= 0) { el.querySelector("#replay").value = k; el.querySelector("#replaylabel").textContent = preview.label; } }
   el.querySelector("#snap").addEventListener("click", () => {
     const name = el.querySelector("#snapname").value.trim() || `Snapshot ${snapshots.length + 1}`;
     snapshots.push({ name, t: clone(tree), w: joyWeight, at: new Date().toISOString() });
-    changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `saved snapshot “${name}”` });
+    logChange(`saved snapshot “${name}”`);
     save(); render();
   });
   el.querySelectorAll("tr.snap").forEach(tr => tr.addEventListener("click", () => {
@@ -972,7 +1035,7 @@ function drawHistory() {
   }));
   el.querySelector("#resetall").addEventListener("click", () => {
     if (!confirm("Throw away the class's edits, polls, snapshots and history?")) return;
-    tree = clone(base); joyWeight = 0; polls = {}; gut = {}; snapshots = []; changelog = []; undoStack = []; save(); render();
+    tree = clone(base); joyWeight = 0; polls = {}; gut = {}; snapshots = []; changelog = []; undoStack = []; versions = []; ideas = clone(baseIdeas); preview = null; save(); render();
   });
 }
 
@@ -987,6 +1050,7 @@ function drawDeciduous() {
       <tr><td>option</td><td>a path you can choose (<code>cost=</code>)</td></tr>
       <tr><td>outcome</td><td>what chance hands you. Its confidence is the probability. <code>payoff=</code>, <code>joy=</code></td></tr>
       <tr><td>observation</td><td>a revision of the node it hangs off: <code>p=</code>, <code>payoff=</code>, <code>joy=</code>, <code>cost=</code></td></tr>
+      <tr><td>observation with <code>idea_status=</code></td><td>an idea on the board, parked or discarded, waiting for the next class</td></tr>
     </table>
     <h2>Send the class's changes back</h2>
     <p class="hint">The site never writes to deciduous by itself. This turns every difference between the tree now and the published graph into deciduous commands you can run, so the next class opens on these numbers and the graph keeps the history of how they changed.</p>
@@ -1015,7 +1079,7 @@ function exportScript() {
     if (!b) {                                    // new node: create it under its parent
       const pref = parent.cid ? parent.cid.slice(0, 8) : `"$${ref[parent.id]}"`;
       const var_ = "n" + (++v); ref[n.id] = var_;
-      const desc = [n.cost && `cost=${n.cost}`, kindOf(n) === "end" && `payoff=${n.payoff}`, kindOf(n) === "end" && `joy=${n.joy}`].filter(Boolean).join("\\n");
+      const desc = [n.cost && `cost=${n.cost}`, (kindOf(n) === "end" || n.payoff) && `payoff=${n.payoff}`, (kindOf(n) === "end" || n.joy) && `joy=${n.joy}`].filter(Boolean).join("\\n");
       const conf = n.kind === "outcome" ? ` -c ${Math.round(n.p * 100)}` : "";
       L.push(`# new ${n.kind}: ${n.title}`);
       L.push(`${var_}=$(add ${n.kind} ${shq(n.title)}${conf} -d "$(printf '%b' ${shq(desc)})")`);
@@ -1039,6 +1103,24 @@ function exportScript() {
   });
   const removed = []; walk(base, n => { if (!find(n.id)) removed.push(n); });
   removed.forEach(n => { L.push(`# “${n.title}” was deleted in class. Deciduous keeps it; mark it rejected:`, `deciduous status ${n.cid.slice(0, 8)} rejected`, ""); changes++; });
+
+  // ideas: park them in deciduous so the next class starts with them
+  const deciStatus = { added: "completed", discarded: "rejected", parked: "pending", new: "pending" };
+  ideas.forEach(i => {
+    if (i.cid) {                                // came from deciduous: record what the class did with it
+      if (i.status !== i.loadedStatus) { L.push(`# idea “${i.title}”: ${i.loadedStatus} → ${i.status}`, `deciduous status ${i.cid.slice(0, 8)} ${deciStatus[i.status]}`, ""); changes++; }
+      return;
+    }
+    if (i.status !== "parked" && i.status !== "discarded") return;
+    const par = find(i.parentId) || find(i.parentId, base);
+    const pref = par && par.cid ? par.cid.slice(0, 8) : ref[i.parentId] ? `"$${ref[i.parentId]}"` : null;
+    if (!pref) { L.push(`# idea “${i.title}” hangs off a node that no longer exists; not recorded`, ""); return; }
+    const kv = [`idea_status=${i.status}`, `idea_kind=${i.kind}`, `idea_source=${i.source}`, `idea_p=${+(+i.p || 0).toFixed(4)}`, `idea_payoff=${+i.payoff || 0}`, `idea_joy=${+i.joy || 0}`, `idea_cost=${+i.cost || 0}`];
+    if (i.why) kv.push(`idea_why=${i.why.replace(/\n/g, " ")}`);
+    if (i.children && i.children.length) kv.push(`idea_children=${JSON.stringify(i.children)}`);
+    L.push(`o=$(add observation ${shq(`Idea (${i.status}): ${i.title}`)} -d "$(printf '%s' ${shq(kv.join("\n"))})")`, `deciduous link ${pref} "$o" -r ${shq("idea board " + date)}`, "");
+    changes++;
+  });
 
   const before = rootSummary(base, 0), after = rootSummary(tree, joyWeight);
   if (before.best !== after.best || joyWeight) {
@@ -1080,6 +1162,7 @@ function aiTree(vals) {
     if (n.p !== null) o.p = +n.p.toFixed(4);
     if (n.cost) o.cost = n.cost;
     if (kindOf(n) === "end") { o.payoff = n.payoff; o.joy = n.joy; }
+    else if (n.payoff) o.payoff = n.payoff;     // a grown end point: earned up to here
     if (kindOf(n) !== "end") o.ev = Math.round(vals[n.id].v * 10) / 10;
     if (n.children.length) o.children = n.children.map(pack);
     return o;
@@ -1194,7 +1277,7 @@ document.getElementById("aiform").addEventListener("submit", async e => {
     const { summary, ops } = await aiPost("/edit", { tree: aiTree(rollbackCache), message });
     if (!ops.length) { aiShow(`<p>${esc(summary || "No change.")}</p><p class="hint">Nothing changed in the tree.</p>`); return; }
     const { applied, rejected, touched } = applyOps(ops);
-    if (applied.length) changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `AI: ${message} → ${summary}` });
+    if (applied.length) logChange(`AI: ${message} → ${summary}`);
     pulseIds = touched; save(); render();
     const bad = [];
     walk(tree, n => { if (kindOf(n) === "chance") { const s = rollbackCache[n.id].sumP; if (Math.abs(s - 1) > 0.0005) bad.push(`${n.title} now adds up to ${pct(s)}`); } });
@@ -1219,14 +1302,261 @@ document.getElementById("aiexplain").addEventListener("click", async () => {
 });
 
 /* ------------------------------------------------------------------ *
+ * Ideas: growing the tree
+ *
+ * The board holds branches the class might add, from a hand in the air or
+ * from a DeepSeek brainstorm. Nothing on it touches the tree until someone
+ * presses Add. Hovering a card draws it into the tree as a dashed ghost and
+ * says what it would do to the decision, so the class can argue about an
+ * idea before committing to it. Parked and discarded ideas go to deciduous
+ * with the export, and the next class opens with them on the board.
+ * ------------------------------------------------------------------ */
+let ideaFocus = null;
+let ghostIds = new Set();
+
+// Temporarily point the drawing code at another tree (a ghost preview, an old version).
+function withTree(t, w, fn) {
+  const rt = tree, rw = joyWeight; tree = t; joyWeight = w;
+  try { return fn(); } finally { tree = rt; joyWeight = rw; }
+}
+
+function ideaProblem(i, t = tree) {
+  const par = find(i.parentId, t);
+  if (!par) return "the node it hangs off is gone";
+  if (i.kind === "outcome" && par.kind === "goal") return "an outcome can't hang off the decision itself";
+  if (i.kind === "outcome" && par.children.some(c => c.kind === "option")) return `“${par.title}” already has choices under it, not chance`;
+  if (i.kind === "option" && par.children.some(c => c.kind === "outcome")) return `“${par.title}” already has chance outcomes under it`;
+  if (par.children.some(c => c.title.trim().toLowerCase() === i.title.trim().toLowerCase())) return "already in the tree";
+  return null;
+}
+
+/* The tree with this idea grafted on. A new outcome takes its probability
+ * from its siblings in proportion, the same rule as dragging a p. */
+function graft(i, t, idOf) {
+  const par = find(i.parentId, t);
+  const mk = (x, kind) => ({ id: idOf(), cid: null, kind, title: String(x.title || "Idea").slice(0, 80),
+    p: kind === "outcome" ? Math.max(0, Math.min(1, +x.p || 0)) : null, cost: +x.cost || 0, payoff: +x.payoff || 0,
+    joy: x.joy === undefined ? 5 : Math.max(0, Math.min(10, +x.joy)), question: "", note: "", revisions: [], children: [] });
+  const node = mk(i, i.kind);
+  if (i.kind === "option") {
+    node.payoff = 0; node.joy = 0; node.children = (i.children || []).map(c => mk(c, "outcome"));
+    // A later choice always includes not changing anything. Without it the
+    // math would be forced to take the new path, however bad.
+    if (par !== t && !par.children.some(c => c.kind === "option"))
+      par.children.push({ id: idOf(), cid: null, kind: "option", title: "Keep going as before", p: null, cost: 0, payoff: 0,
+        joy: par.joy, question: "", note: "", revisions: [], children: [] });
+  }
+  if (i.kind === "outcome") {
+    const sibs = par.children.filter(c => c.kind === "outcome"), rest = sibs.reduce((s, c) => s + c.p, 0);
+    if (sibs.length && rest > 0) sibs.forEach(c => c.p = c.p * (1 - node.p) / rest);
+    else if (!sibs.length && node.p < 1) {
+      // Growing an end point with one idea must not make that idea certain:
+      // the rest of the probability stays with "nothing new happens".
+      par.children.push({ id: idOf(), cid: null, kind: "outcome", title: kindOf(par) === "end" && par.kind === "outcome" ? "Carries on as before" : "Everything else",
+        p: 1 - node.p, cost: 0, payoff: 0, joy: par.kind === "outcome" ? par.joy : 5, question: "", note: "", revisions: [], children: [] });
+    }
+  }
+  const before = new Set(par.children.map(c => c.id));
+  par.children.push(node);
+  const ids = []; par.children.forEach(c => { if (!before.has(c.id) || c === node) walk(c, n => ids.push(n.id)); });
+  return ids;
+}
+
+function ideaImpact(i) {
+  if (ideaProblem(i)) return null;
+  const t = clone(tree); let k = 0;
+  graft(i, t, () => "ghost" + k++);
+  const before = rollback(tree, joyWeight), after = rollback(t, joyWeight);
+  const opt = tree.children.find(c => { let hit = false; walk(c, n => { if (n.id === i.parentId) hit = true; }); return hit; });
+  const parts = [];
+  if (opt) parts.push(`EV(${opt.title}) ${money(before[opt.id].v)} → ${money(after[opt.id].v)}`);
+  else if (i.parentId === tree.id) { const nid = t.children[t.children.length - 1].id; parts.push(`EV(${i.title}) ${money(after[nid].v)}`); }
+  const b0 = find(before[tree.id].best).title, b1 = find(after[tree.id].best, t).title;
+  parts.push(b0 === b1 ? `still ${b1}` : `<b class="flip">flips to ${esc(b1)}</b>`);
+  if (i.kind === "option" && i.parentId !== tree.id) parts.push("a later choice can only help: you'd take it only if it beats keeping going");
+  return parts.map(x => x.startsWith("<b") ? x : esc(x)).join(" · ");
+}
+
+function ghost(i) {
+  if (!i || ideaProblem(i)) { ghostIds = new Set(); drawMain(); return; }
+  const t = clone(tree); let k = 0;
+  ghostIds = new Set(graft(i, t, () => "ghost" + i.id + "-" + k++));
+  withTree(t, joyWeight, () => drawTree(rollback(t, joyWeight)));
+}
+
+function addIdea(i) {
+  const why = ideaProblem(i); if (why) { alert(`Can't add “${i.title}”: ${why}.`); return; }
+  ghostIds = new Set();
+  let added = [];
+  const par = find(i.parentId);
+  commit(`added idea “${i.title}” under ${par.title}${i.source === "AI" ? " (from a DeepSeek brainstorm)" : ""}`, () => {
+    added = graft(i, tree, () => "n" + Date.now() + Math.floor(Math.random() * 1e6));
+    i.status = "added"; i.nodeId = added[0];
+  });
+  pulseIds = new Set(added); save(); render();
+}
+
+function setIdea(i, status) { i.status = status; ghostIds = new Set(); save(); render(); }
+
+async function brainstorm() {
+  const focus = find(ideaFocus) || tree;
+  const nudge = (document.getElementById("ideanudge") || {}).value || "";
+  const st = document.getElementById("ideastatus");
+  if (st) st.innerHTML = `<span class="aispin"></span> DeepSeek is brainstorming around “${esc(focus.title)}”…`;
+  document.querySelectorAll("#brainbtn").forEach(b => b.disabled = true);
+  try {
+    const { ideas: got } = await aiPost("/ideas", { tree: aiTree(rollbackCache), focus_id: focus.id, message: nudge.trim() });
+    const at = new Date().toISOString();
+    got.forEach((g, k) => ideas.unshift({
+      id: "i" + Date.now() + "-" + k, cid: null, parentId: find(g.parent_id) ? g.parent_id : focus.id,
+      kind: g.kind === "option" ? "option" : "outcome", title: String(g.title || "Idea").slice(0, 80), why: String(g.why || ""),
+      p: +g.p || 0.1, payoff: +g.payoff || 0, joy: g.joy === undefined ? 5 : +g.joy, cost: +g.cost || 0,
+      children: Array.isArray(g.children) ? g.children.slice(0, 4).map(c => ({ title: String(c.title || ""), p: +c.p || 0, payoff: +c.payoff || 0, joy: c.joy === undefined ? 5 : +c.joy })) : [],
+      source: "AI", status: "new", at
+    }));
+    logChange(`brainstormed ${got.length} ideas around ${focus.title}${nudge.trim() ? ` (“${nudge.trim()}”)` : ""}`);
+    save(); render();
+    const st2 = document.getElementById("ideastatus"); if (st2) st2.textContent = `${got.length} new ideas. Hover one to see it in the tree.`;
+  } catch (e) {
+    const st2 = document.getElementById("ideastatus"); if (st2) st2.innerHTML = `<div class="warnbox">${esc(e.message)}</div>`;
+  } finally { document.querySelectorAll("#brainbtn").forEach(b => b.disabled = false); }
+}
+
+function nodeOptions(selected) {
+  const out = [];
+  walk(tree, (n, p, d) => out.push(`<option value="${n.id}" ${n.id === selected ? "selected" : ""}>${"  ".repeat(d)}${esc(n.title)}</option>`));
+  return out.join("");
+}
+
+function ideaCard(i) {
+  const par = find(i.parentId), problem = i.status !== "added" ? ideaProblem(i) : null;
+  const nums = i.kind === "outcome"
+    ? `p ${pct(i.p)} · ${money(i.payoff)} · joy ${n0(i.joy)}`
+    : (i.cost ? `cost ${money(i.cost)} · ` : "") + (i.children || []).map(c => `${esc(c.title)} ${pct(c.p)} ${money(c.payoff)}`).join("; ");
+  const impact = i.status === "new" || i.status === "parked" ? ideaImpact(i) : null;
+  return `<div class="idea ${i.status}" data-id="${i.id}">
+    <div class="ideahead"><span class="ideakind">${i.kind === "option" ? "choice" : "chance"}</span> <b>${esc(i.title)}</b></div>
+    <div class="hint">under ${par ? esc(par.title) : "<i>a deleted node</i>"} · ${i.source === "AI" ? "DeepSeek" : i.source === "class" ? "the class" : esc(i.source)}${i.cid ? " · from deciduous" : ""}</div>
+    <div class="ideanums">${nums}</div>
+    ${i.why ? `<div class="ideawhy">${esc(i.why)}</div>` : ""}
+    ${impact ? `<div class="ideaimpact">If added: ${impact}</div>` : ""}
+    ${problem ? `<div class="hint" style="color:var(--warn)">Can't add: ${esc(problem)}</div>` : ""}
+    <div class="btnrow">
+      ${i.status === "new" || i.status === "parked" ? `<button class="small primary" data-act="add" ${problem ? "disabled" : ""}>Add to tree</button>` : ""}
+      ${i.status === "new" ? `<button class="small" data-act="park">Park</button>` : ""}
+      ${i.status === "new" || i.status === "parked" ? `<button class="small" data-act="discard">Discard</button>` : ""}
+      ${i.status === "discarded" ? `<button class="small" data-act="park">Bring back</button>` : ""}
+    </div></div>`;
+}
+
+function drawIdeas() {
+  const el = document.getElementById("tab-ideas");
+  if (!find(ideaFocus)) ideaFocus = selectedId && find(selectedId) ? selectedId : tree.id;
+  const group = st => ideas.filter(i => i.status === st);
+  const fresh = group("new"), parked = group("parked"), gone = group("discarded"), added = group("added");
+  let h = `<h2>Brainstorm with DeepSeek</h2>
+    <label class="field"><span>Around</span><select id="ideafocus" style="width:100%;padding:3px">${nodeOptions(ideaFocus)}</select></label>
+    <label class="field"><span>Nudge</span><input type="text" id="ideanudge" maxlength="300" placeholder="optional: “what about social media?”"></label>
+    <div class="btnrow"><button class="primary" id="brainbtn">Brainstorm</button></div>
+    <p class="hint" id="ideastatus">Pick an end point to ask what happens next, a chance node for what's missing, or the decision for new paths.</p>
+    <h2>An idea from the class</h2>
+    <div class="btnrow"><input type="text" id="newidea" maxlength="80" placeholder="e.g. Becomes a music producer" style="flex:1;border:1px solid var(--rule);padding:3px 6px"></div>
+    <div class="btnrow" style="align-items:center">
+      <select id="newideakind" style="padding:3px"><option value="outcome">chance outcome</option><option value="option">a choice</option></select>
+      <span class="hint">under</span><select id="newideaparent" style="flex:1;padding:3px;min-width:0">${nodeOptions(ideaFocus)}</select>
+      </div>
+    <div class="btnrow" style="align-items:center"><span class="hint">chance</span><input type="number" id="newideap" min="0" max="100" step="1" value="10" style="width:62px">%
+      <span class="hint">earnings ${UNIT}</span><input type="number" id="newideapay" step="50" value="0" style="width:84px">
+      <button id="newideabtn">Put on the board</button></div>
+    <h2>On the board (${fresh.length})</h2>${fresh.map(ideaCard).join("") || `<p class="hint">Nothing new. Brainstorm, or take an idea from the room.</p>`}`;
+  if (parked.length) h += `<h2>Parked for later (${parked.length})</h2>${parked.map(ideaCard).join("")}`;
+  if (added.length) h += `<details><summary class="hint">Added to the tree (${added.length})</summary>${added.map(ideaCard).join("")}</details>`;
+  if (gone.length) h += `<details><summary class="hint">Discarded (${gone.length})</summary>${gone.map(ideaCard).join("")}</details>`;
+  h += `<p class="hint">Parked and discarded ideas go to deciduous with “Write deciduous commands”, so the next class starts with them here.</p>`;
+  el.innerHTML = h;
+
+  el.querySelector("#ideafocus").onchange = e => { ideaFocus = e.target.value; };
+  el.querySelector("#brainbtn").onclick = brainstorm;
+  el.querySelector("#newideabtn").onclick = () => {
+    const title = el.querySelector("#newidea").value.trim(); if (!title) { el.querySelector("#newidea").focus(); return; }
+    const kind = el.querySelector("#newideakind").value;
+    ideas.unshift({ id: "i" + Date.now(), cid: null, parentId: el.querySelector("#newideaparent").value, kind, title, why: "",
+      p: Math.max(0, Math.min(100, +el.querySelector("#newideap").value || 0)) / 100, payoff: +el.querySelector("#newideapay").value || 0, joy: 5, cost: 0, children: kind === "option" ? [{ title: "Works out", p: 0.5, payoff: 0, joy: 5 }, { title: "Doesn't", p: 0.5, payoff: 0, joy: 5 }] : [],
+      source: "class", status: "new", at: new Date().toISOString() });
+    save(); render();
+  };
+  el.querySelectorAll(".idea").forEach(card => {
+    const i = ideas.find(x => x.id === card.dataset.id);
+    card.onmouseenter = () => { if (i.status === "new" || i.status === "parked") ghost(i); };
+    card.onmouseleave = () => ghost(null);
+    card.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
+      const a = b.dataset.act;
+      if (a === "add") addIdea(i); else setIdea(i, a === "park" ? "parked" : "discarded");
+    });
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Replay: scrub through every logged change and watch the tree grow.
+ * The tree view shows the old version; the panels and edits stay on now.
+ * ------------------------------------------------------------------ */
+let playTimer = null;
+function steps() { return [{ at: null, text: "as published in deciduous", t: base, w: 0 }, ...versions]; }
+function showStep(k) {
+  const all = steps();
+  if (k >= all.length) { preview = null; }
+  else { const s = all[k]; preview = { t: s.t, w: s.w, label: `Step ${k} of ${all.length - 1}: ${s.text}${s.at ? ` · ${new Date(s.at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}` }; }
+  document.body.classList.toggle("previewing", !!preview);
+  const bar = document.getElementById("previewbar");
+  bar.hidden = !preview;
+  if (preview) bar.querySelector("span").textContent = preview.label;
+  const sl = document.getElementById("replay"); if (sl) { sl.value = k; document.getElementById("replaylabel").textContent = preview ? preview.label : "Now"; }
+  drawMain();
+}
+function stopPlay() { clearInterval(playTimer); playTimer = null; const b = document.getElementById("playbtn"); if (b) b.textContent = "▶ Play"; }
+function play() {
+  if (playTimer) return stopPlay();
+  let k = preview ? +document.getElementById("replay").value : 0;
+  if (!preview && versions.length === 0) return;
+  if (!preview) k = 0;
+  showStep(k);
+  document.getElementById("playbtn").textContent = "❚❚ Pause";
+  playTimer = setInterval(() => { k++; showStep(k); if (k >= steps().length) stopPlay(); }, 1100);
+}
+function replaySection() {
+  const n = steps().length;
+  return `<h2>How the tree grew</h2>
+    <input type="range" id="replay" min="0" max="${n}" step="1" value="${n}" style="width:100%">
+    <div class="hint" id="replaylabel">Now</div>
+    <div class="btnrow"><button class="small" id="playbtn">▶ Play</button><button class="small" id="replaynow">Back to now</button><button class="small" id="replayrestore">Make this version current</button></div>
+    <p class="hint">${n - 1} change${n === 2 ? "" : "s"} since the published graph. Drag through them or press Play to watch the tree grow.</p>`;
+}
+function bindReplay(el) {
+  el.querySelector("#replay").oninput = e => { stopPlay(); showStep(+e.target.value); };
+  el.querySelector("#playbtn").onclick = play;
+  el.querySelector("#replaynow").onclick = () => { stopPlay(); showStep(steps().length); };
+  el.querySelector("#replayrestore").onclick = () => {
+    if (!preview) return;
+    const p = preview; stopPlay(); preview = null; document.body.classList.remove("previewing"); document.getElementById("previewbar").hidden = true;
+    commit(`went back to: ${p.label.replace(/^Step \d+ of \d+: /, "")}`, () => { tree = clone(p.t); joyWeight = p.w; });
+  };
+}
+
+/* ------------------------------------------------------------------ *
  * Render loop
  * ------------------------------------------------------------------ */
 let rollbackCache = {};
+function drawMain(dragging = false) {
+  if (preview) return withTree(preview.t, preview.w, () => { const v = rollback(tree, joyWeight); drawTree(v, dragging); drawMath(v); drawVerdict(v); });
+  const v = rollback(tree, joyWeight);
+  drawTree(v, dragging); drawMath(v); drawVerdict(v);
+}
 function render(dragging = false, keepPanel = false) {
   const vals = rollback(tree, joyWeight);
   rollbackCache = vals;
-  drawTree(vals, dragging); drawMath(vals); drawVerdict(vals);
-  if (!dragging) { drawEdit(vals); drawPoll(vals); drawHistory(); drawDeciduous(); }
+  ghostIds = new Set();
+  drawMain(dragging);
+  if (!dragging) { drawEdit(vals); drawIdeas(); drawPoll(vals); drawHistory(); drawDeciduous(); }
   else if (!keepPanel) {
     // keep the inputs the user is dragging, refresh the chart and readouts
     const n = selectedId && find(selectedId);
@@ -1252,6 +1582,7 @@ function showTab(name) {
 }
 document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 document.getElementById("undo").addEventListener("click", undo);
+document.getElementById("previewexit").addEventListener("click", () => { stopPlay(); showStep(steps().length); });
 document.getElementById("present").addEventListener("click", () => {
   document.body.classList.toggle("present");
   document.getElementById("present").textContent = document.body.classList.contains("present") ? "Edit" : "Present";
@@ -1280,7 +1611,10 @@ async function boot() {
   const saved = JSON.parse(localStorage.getItem(STORE) || "null");
   if (saved && saved.baseStamp === baseStamp()) {
     ({ tree, joyWeight, polls, gut, snapshots, changelog } = saved);
+    ideas = saved.ideas || []; versions = saved.versions || [];
+    baseIdeas.forEach(b => { if (!ideas.some(i => i.cid === b.cid)) ideas.push(clone(b)); });
   } else {
+    ideas = clone(baseIdeas);
     // a new graph was published: start from it, keep nothing stale
     tree = clone(base);
     if (saved) changelog = [{ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: "loaded a newer deciduous graph; earlier in-browser edits set aside" }];

@@ -3,7 +3,7 @@
 // The site is static (GitHub Pages), so it cannot hold an API key. This holds
 // it, and nothing else about the request is up to the browser: the system
 // prompts, the models, the tools and the token budgets are fixed here. The
-// browser sends the tree and, for edits, one short instruction.
+// browser sends the tree and, for edits and brainstorms, one short instruction.
 //
 // It is reachable by anyone who finds the URL, and CORS does not stop curl,
 // so what actually bounds the bill is the rate limit: per IP per hour and a
@@ -57,7 +57,9 @@ The tree is given as JSON. Node kinds: "goal" is the decision (the student choos
 "outcome" is something chance picks. Fields: p = probability of an outcome among its siblings (0 to 1, siblings should sum to 1),
 payoff = 10-year net earnings in thousands of dollars ($k) at an end point, joy = satisfaction 0 to 10 at an end point,
 cost = $k paid to take that branch. joyWeight = $k one point of satisfaction is worth (0 means money only).
-ev = the rolled-back expected value already computed for each node; best = the option the math picks.`;
+ev = the rolled-back expected value already computed for each node; best = the option the math picks.
+A payoff on a node that has children is money earned up to that point (an end point that was later grown); its children's payoffs come on top.
+Satisfaction (joy) only counts at end points.`;
 
 const EDIT_SYSTEM = `${TREE_PRIMER}
 
@@ -110,6 +112,51 @@ const EDIT_TOOL = {
   }
 };
 
+const IDEAS_SYSTEM = `${TREE_PRIMER}
+
+The class is brainstorming ways to grow the tree. You get the tree, a focus node id, and maybe a nudge from the class.
+Suggest 4 to 6 new branches by calling the suggest_branches tool exactly once. What fits depends on the focus node:
+- An end point (no children): what happens NEXT, later in this person's life. Either chance outcomes (kind "outcome", their p summing to about 1 as a set)
+  or a choice the person would face (kind "option", each with 2-3 outcome children). Pick whichever is more realistic, and say which in the "why".
+  The end point's own payoff is what was earned up to that point; new branches add earnings on top of it, so payoff here means what the next stage adds.
+- A chance node: outcomes it is missing (kind "outcome"). Give a realistic p for each; the site will shrink the existing ones to make room.
+- The decision (goal): new paths to choose (kind "option"), each with 2-3 outcome children and a cost.
+Make them concrete, varied and realistic for the career in question, including unglamorous ones. Do not repeat branches already in the tree.
+Money in $k over the same 10-year horizon. "why" is one sentence a student would find persuasive or surprising.`;
+
+const IDEAS_TOOL = {
+  type: "function",
+  function: {
+    name: "suggest_branches",
+    description: "Suggest new branches for the tree.",
+    parameters: {
+      type: "object",
+      properties: {
+        ideas: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              parent_id: { type: "string", description: "id of the node this branch hangs off (usually the focus node)" },
+              kind: { type: "string", enum: ["outcome", "option"] },
+              title: { type: "string" },
+              why: { type: "string" },
+              p: { type: "number", description: "outcome: probability among its siblings" },
+              payoff: { type: "number" }, joy: { type: "number" }, cost: { type: "number" },
+              children: {
+                type: "array", description: "option: its outcomes",
+                items: { type: "object", properties: { title: { type: "string" }, p: { type: "number" }, payoff: { type: "number" }, joy: { type: "number" } }, required: ["title", "p", "payoff"] }
+              }
+            },
+            required: ["parent_id", "kind", "title", "why"]
+          }
+        }
+      },
+      required: ["ideas"]
+    }
+  }
+};
+
 /* ---------------- DeepSeek ---------------- */
 async function deepseek(body, timeoutMs) {
   const res = await fetch(ENDPOINT, {
@@ -150,6 +197,26 @@ async function edit(tree, message) {
   return { summary: String(args.summary || ""), ops: args.ops };
 }
 
+async function ideas(tree, focusId, message) {
+  const msg = await deepseek({
+    model: "deepseek-chat",
+    max_tokens: 2500,
+    temperature: 0.8,
+    tools: [IDEAS_TOOL],
+    tool_choice: { type: "function", function: { name: "suggest_branches" } },
+    messages: [
+      { role: "system", content: IDEAS_SYSTEM },
+      { role: "user", content: `Tree:\n${JSON.stringify(tree)}\n\nFocus node id: ${focusId}` + (message ? `\nThe class says: ${message}` : "") }
+    ]
+  }, 60_000);
+  const call = msg.tool_calls?.[0];
+  if (!call) throw Object.assign(new Error("model made no suggest_branches call"), { status: 502 });
+  let args;
+  try { args = JSON.parse(call.function.arguments || "{}"); }
+  catch { throw Object.assign(new Error("model returned invalid JSON for suggest_branches"), { status: 502 }); }
+  return { ideas: Array.isArray(args.ideas) ? args.ideas.slice(0, 8) : [] };
+}
+
 async function explain(tree, facts) {
   const list = Array.isArray(facts) ? facts.slice(0, 40).map(f => "- " + String(f).slice(0, 300)).join("\n") : "";
   const msg = await deepseek({
@@ -175,7 +242,7 @@ http.createServer(async (req, res) => {
   const origin = ORIGINS.includes(req.headers.origin) ? req.headers.origin : null;
   if (req.method === "GET" && req.url === "/health") return send(res, 200, { ok: true, today: dayCount }, null);
   if (req.method === "OPTIONS") return send(res, 204, null, origin);
-  if (req.method !== "POST" || !["/edit", "/explain"].includes(req.url)) return send(res, 404, { error: "not found" }, origin);
+  if (req.method !== "POST" || !["/edit", "/explain", "/ideas"].includes(req.url)) return send(res, 404, { error: "not found" }, origin);
   if (!origin) return send(res, 403, { error: "origin not allowed" }, null);
 
   const ip = req.headers["cf-connecting-ip"] || (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress;
@@ -184,6 +251,8 @@ http.createServer(async (req, res) => {
   let body;
   try { body = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { return send(res, 400, { error: "invalid JSON" }, origin); }
   if (!body || typeof body.tree !== "object") return send(res, 400, { error: "missing tree" }, origin);
+  if (req.url === "/ideas" && (typeof body.focus_id !== "string" || (body.message && (typeof body.message !== "string" || body.message.length > MAX_MESSAGE))))
+    return send(res, 400, { error: "focus_id required; message at most " + MAX_MESSAGE + " characters" }, origin);
   if (req.url === "/edit" && (typeof body.message !== "string" || !body.message.trim() || body.message.length > MAX_MESSAGE))
     return send(res, 400, { error: `message must be 1-${MAX_MESSAGE} characters` }, origin);
 
@@ -191,7 +260,9 @@ http.createServer(async (req, res) => {
   if (limited) return send(res, 429, { error: limited }, origin);
 
   try {
-    const out = req.url === "/edit" ? await edit(body.tree, body.message.trim()) : await explain(body.tree, body.facts);
+    const out = req.url === "/edit" ? await edit(body.tree, body.message.trim())
+      : req.url === "/ideas" ? await ideas(body.tree, body.focus_id, (body.message || "").trim())
+      : await explain(body.tree, body.facts);
     send(res, 200, out, origin);
   } catch (e) {
     console.error(req.url, e.message);
