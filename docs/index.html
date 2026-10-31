@@ -554,7 +554,7 @@ function drawEdit(vals) {
   const n = selectedId && find(selectedId);
   let h = `<h2>Value of satisfaction</h2>
     <label class="field"><span>${UNIT} per point</span>
-      <div class="prow"><input type="range" id="joyw" min="0" max="400" step="5" value="${joyWeight}"><input type="number" id="joywn" min="0" step="5" value="${joyWeight}"></div></label>
+      <div class="prow"><input type="range" id="joyw" min="0" max="1000" step="5" value="${joyWeight}"><input type="number" id="joywn" min="0" step="5" value="${joyWeight}"></div></label>
     <p class="hint">Each end point has a satisfaction score from 0 to 10. At 0 the tree is money only. Raise it and ask: how much salary would you trade for a point of happiness?</p>`;
   if (!n) {
     h += `<h2>Edit</h2><p class="hint">Click a node in the tree to change its name, probability, payoff or cost.</p>`;

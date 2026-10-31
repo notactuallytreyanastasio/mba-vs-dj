@@ -1,5 +1,15 @@
 {
   "edges": {
+    "11b74aa9175dad80c449": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:40:40.293949-04:00",
+      "edge_id": "11b74aa9175dad80c449",
+      "edge_type": "leads_to",
+      "from_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "rationale": "realistic DJ economics",
+      "to_change_id": "1e65bde9-1d5d-4947-b867-916e0ce2dbd7",
+      "weight": 1.0
+    },
     "14f639c655e236ad0434": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:58.877900-04:00",
@@ -70,6 +80,16 @@
       "to_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
       "weight": 1.0
     },
+    "e129c2d6fb589a523d30": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:40:40.793026-04:00",
+      "edge_id": "e129c2d6fb589a523d30",
+      "edge_type": "leads_to",
+      "from_change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "rationale": "realistic DJ economics",
+      "to_change_id": "36117a9f-562a-4f9e-ac65-8771b1d4d62a",
+      "weight": 1.0
+    },
     "e17961484d589c7b5338": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:58.322973-04:00",
@@ -78,6 +98,16 @@
       "from_change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
       "rationale": "path",
       "to_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "weight": 1.0
+    },
+    "ef1b19956c26478be31a": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:40:39.761124-04:00",
+      "edge_id": "ef1b19956c26478be31a",
+      "edge_type": "leads_to",
+      "from_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "rationale": "realistic DJ economics",
+      "to_change_id": "dd6b510f-d51a-4821-a5a9-a4d0b5f7d9ec",
       "weight": 1.0
     }
   },
@@ -95,6 +125,19 @@
       "title": "Consulting or banking",
       "updated_at": "2026-10-31T02:24:58.547603-04:00"
     },
+    "1e65bde9-1d5d-4947-b867-916e0ce2dbd7": {
+      "author": "Bobby Grayson",
+      "change_id": "1e65bde9-1d5d-4947-b867-916e0ce2dbd7",
+      "created_at": "2026-10-31T02:40:40.072519-04:00",
+      "description": "title=Club rooms, ~100 people\np=0.27\npayoff=400\njoy=8",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Revised: the working tier is rooms of ~100 people",
+      "updated_at": "2026-10-31T02:40:40.072519-04:00"
+    },
     "31f7af18-592f-48b0-be4b-3cb96138c2dd": {
       "author": "Bobby Grayson",
       "change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
@@ -104,6 +147,19 @@
       "status": "pending",
       "title": "DJ",
       "updated_at": "2026-10-31T02:24:58.210753-04:00"
+    },
+    "36117a9f-562a-4f9e-ac65-8771b1d4d62a": {
+      "author": "Bobby Grayson",
+      "change_id": "36117a9f-562a-4f9e-ac65-8771b1d4d62a",
+      "created_at": "2026-10-31T02:40:40.579165-04:00",
+      "description": "title=Small rooms, ~15 people\np=0.70\npayoff=250\njoy=6",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Revised: most DJs play rooms of ~15 people",
+      "updated_at": "2026-10-31T02:40:40.579165-04:00"
     },
     "3733a23b-b68b-4175-9d5a-dc40515ac447": {
       "author": "Bobby Grayson",
@@ -180,6 +236,19 @@
       "status": "pending",
       "title": "Side gig plus a day job",
       "updated_at": "2026-10-31T02:24:59.659594-04:00"
+    },
+    "dd6b510f-d51a-4821-a5a9-a4d0b5f7d9ec": {
+      "author": "Bobby Grayson",
+      "change_id": "dd6b510f-d51a-4821-a5a9-a4d0b5f7d9ec",
+      "created_at": "2026-10-31T02:40:39.281588-04:00",
+      "description": "title=Big rooms, ~1,000 people (lucky)\np=0.03\npayoff=1200\njoy=10",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Revised: big rooms (~1,000 people) are the lucky ceiling, not touring headliners",
+      "updated_at": "2026-10-31T02:40:39.281588-04:00"
     },
     "ef7a2210-b97b-4795-a34f-084c2cbe2fe6": {
       "author": "Bobby Grayson",

@@ -13,8 +13,9 @@ decision graph; the site in `docs/` draws it, rolls it back, and shows every ste
 3. **Ask for the odds.** Poll tab, pick a chance node ("Odds: DJ"), type in how many students picked each bucket,
    then "Use these as the probabilities". The tree and the math update.
 4. **Argue about a number.** Click any node to change its probability, earnings or cost. The "What would it take?"
-   chart shows the probability at which the decision flips. In the shipped tree, DJ overtakes MBA once
-   P(headliner) reaches about 9%.
+   chart shows the probability at which the decision flips, or that none does. In the shipped tree, no
+   probability of playing big rooms makes DJ win on money: a DJ who plays 1,000-person rooms for ten years
+   still ends up behind the MBA average.
 5. **Put a price on happiness.** Raise "$k per point" to weight satisfaction (0 to 10 on each end point) against money.
 6. **Compare.** History tab: save snapshots ("before poll", "after poll") and see the decision under each.
 
