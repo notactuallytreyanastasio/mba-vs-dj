@@ -1,0 +1,201 @@
+{
+  "edges": {
+    "14f639c655e236ad0434": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:58.877900-04:00",
+      "edge_id": "14f639c655e236ad0434",
+      "edge_type": "leads_to",
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "rationale": "chance",
+      "to_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "weight": 1.0
+    },
+    "197df0914d0d55dbfb0f": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:58.654024-04:00",
+      "edge_id": "197df0914d0d55dbfb0f",
+      "edge_type": "leads_to",
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "rationale": "chance",
+      "to_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "weight": 1.0
+    },
+    "28f7dc549949cff39c08": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:59.100141-04:00",
+      "edge_id": "28f7dc549949cff39c08",
+      "edge_type": "leads_to",
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "rationale": "chance",
+      "to_change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "weight": 1.0
+    },
+    "3620660804c0f66f1da0": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:59.766641-04:00",
+      "edge_id": "3620660804c0f66f1da0",
+      "edge_type": "leads_to",
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "rationale": "chance",
+      "to_change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "weight": 1.0
+    },
+    "408215c824985dad6152": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:58.433030-04:00",
+      "edge_id": "408215c824985dad6152",
+      "edge_type": "leads_to",
+      "from_change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
+      "rationale": "path",
+      "to_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "weight": 1.0
+    },
+    "b923ab5a368f267e9ee7": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:59.325051-04:00",
+      "edge_id": "b923ab5a368f267e9ee7",
+      "edge_type": "leads_to",
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "rationale": "chance",
+      "to_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "weight": 1.0
+    },
+    "c8d154e0e3121d091287": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:59.544284-04:00",
+      "edge_id": "c8d154e0e3121d091287",
+      "edge_type": "leads_to",
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "rationale": "chance",
+      "to_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "weight": 1.0
+    },
+    "e17961484d589c7b5338": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-10-31T02:24:58.322973-04:00",
+      "edge_id": "e17961484d589c7b5338",
+      "edge_type": "leads_to",
+      "from_change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
+      "rationale": "path",
+      "to_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "weight": 1.0
+    }
+  },
+  "nodes": {
+    "14349dd7-b44d-48c5-87ca-29b78c0fce3a": {
+      "author": "Bobby Grayson",
+      "change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "created_at": "2026-10-31T02:24:58.547603-04:00",
+      "description": "payoff=2600\njoy=4",
+      "metadata": {
+        "confidence": 35
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Consulting or banking",
+      "updated_at": "2026-10-31T02:24:58.547603-04:00"
+    },
+    "31f7af18-592f-48b0-be4b-3cb96138c2dd": {
+      "author": "Bobby Grayson",
+      "change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "created_at": "2026-10-31T02:24:58.210753-04:00",
+      "description": "cost=15\nnote=Decks, laptop, software, first gigs\nquestion=Out of 100 people who go all-in on DJing, how many land in each bucket?",
+      "node_type": "option",
+      "status": "pending",
+      "title": "DJ",
+      "updated_at": "2026-10-31T02:24:58.210753-04:00"
+    },
+    "3733a23b-b68b-4175-9d5a-dc40515ac447": {
+      "author": "Bobby Grayson",
+      "change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "created_at": "2026-10-31T02:24:59.438304-04:00",
+      "description": "payoff=900\njoy=8",
+      "metadata": {
+        "confidence": 32
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Working DJ: clubs, weddings, residencies",
+      "updated_at": "2026-10-31T02:24:59.438304-04:00"
+    },
+    "47d138e2-9465-49a6-bc48-0ca274b7ea77": {
+      "author": "Bobby Grayson",
+      "change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
+      "created_at": "2026-10-31T02:24:50.913086-04:00",
+      "description": "question=Which path would you pick? Hands up.\nunit=$k, 10-year net earnings",
+      "metadata": {
+        "confidence": 100,
+        "prompt": "MBA vs DJ as a career path — class decision tree"
+      },
+      "node_type": "goal",
+      "status": "pending",
+      "title": "Career path after college: MBA or DJ?",
+      "updated_at": "2026-10-31T02:24:50.913086-04:00"
+    },
+    "531c69f1-de55-4ecb-a6a8-93aac773dd84": {
+      "author": "Bobby Grayson",
+      "change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "created_at": "2026-10-31T02:24:59.215824-04:00",
+      "description": "payoff=8000\njoy=10",
+      "metadata": {
+        "confidence": 3
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Headliner, touring",
+      "updated_at": "2026-10-31T02:24:59.215824-04:00"
+    },
+    "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4": {
+      "author": "Bobby Grayson",
+      "change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "created_at": "2026-10-31T02:24:58.992947-04:00",
+      "description": "payoff=900\njoy=6",
+      "metadata": {
+        "confidence": 15
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Leaves for something else",
+      "updated_at": "2026-10-31T02:24:58.992947-04:00"
+    },
+    "7b709d9f-9de5-4c05-93fb-52099a8f9f45": {
+      "author": "Bobby Grayson",
+      "change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "created_at": "2026-10-31T02:24:58.089301-04:00",
+      "description": "cost=250\nnote=Tuition plus two years of salary you do not earn\nquestion=Out of 100 MBA grads, how many land in each bucket?",
+      "node_type": "option",
+      "status": "pending",
+      "title": "MBA",
+      "updated_at": "2026-10-31T02:24:58.089301-04:00"
+    },
+    "bb4d6b4a-ab1a-40b3-a050-f3592b76b906": {
+      "author": "Bobby Grayson",
+      "change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "created_at": "2026-10-31T02:24:59.659594-04:00",
+      "description": "payoff=1100\njoy=6",
+      "metadata": {
+        "confidence": 65
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Side gig plus a day job",
+      "updated_at": "2026-10-31T02:24:59.659594-04:00"
+    },
+    "ef7a2210-b97b-4795-a34f-084c2cbe2fe6": {
+      "author": "Bobby Grayson",
+      "change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "created_at": "2026-10-31T02:24:58.769167-04:00",
+      "description": "payoff=1700\njoy=5",
+      "metadata": {
+        "confidence": 50
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Corporate management",
+      "updated_at": "2026-10-31T02:24:58.769167-04:00"
+    }
+  },
+  "tags": {},
+  "themes": {},
+  "version": 1
+}
