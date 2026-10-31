@@ -19,6 +19,13 @@ decision graph; the site in `docs/` draws it, rolls it back, and shows every ste
 5. **Put a price on happiness.** Raise "$k per point" to weight satisfaction (0 to 10 on each end point) against money.
 6. **Compare.** History tab: save snapshots ("before poll", "after poll") and see the decision under each.
 
+7. **Ask DeepSeek.** Type a change into the bar under the tree ("add a producer outcome for DJs, 5%, $600k",
+   "what if MBA tuition doubles?") and press Edit tree. "Explain to the class" narrates the current tree.
+
+The tree is drawn with D3: scroll to zoom, drag the background to pan, hover anything for its share of the math,
+drag a `p = …` pill sideways (or scroll on it) to change a probability while its siblings rebalance, and
+double-click a node to fold it.
+
 Edits stay in the browser (localStorage) until you send them back to deciduous.
 
 ## How the tree maps onto deciduous
@@ -47,3 +54,28 @@ To change the base tree directly, use `deciduous add` / `deciduous link`, then `
 ./publish.sh                       # deciduous graph > docs/graph-data.json
 cd docs && python3 -m http.server  # http://localhost:8000
 ```
+
+## DeepSeek
+
+The site calls `https://bobbby.online/dtree-ai/{edit,explain}`, a small Node service in `proxy/` that holds the
+DeepSeek key, so the public page never does. The browser sends the tree (plus the instruction, or the computed
+facts), and the proxy fixes everything else: prompts, model, tool schema, token budgets. Limits: 60 calls per IP per
+hour and 1,500 per day, in memory.
+
+- **Edit tree**: `deepseek-chat` (V4.1 Flash, thinking off) with a forced `edit_tree` tool call, about 1.5 s. The
+  site checks every op before applying it: unknown ids, probabilities outside 0–1 and outcomes beside choices are
+  listed as "not applied" instead of guessed at. One AI edit is one undo.
+- **Explain to the class**: the site computes the facts (each EV, the margin, break-evens for probabilities, payoffs,
+  cost and the price of satisfaction) and the model only narrates them, about 3 s. Letting the model think it
+  through with `deepseek-flash` got the same numbers but took 20 s, too slow to use live in class.
+
+It runs as the `dtree-ai` service in the blog stack on the Hetzner box (`/opt/dtree-ai`, Caddy `handle_path
+/dtree-ai/*`). To redeploy after changing `proxy/`:
+
+```sh
+rsync -a --delete proxy/ root@5.161.181.91:/opt/dtree-ai/
+ssh root@5.161.181.91 'cd /opt/blog && docker compose up -d --build dtree-ai'
+```
+
+For local work run `DEEPSEEK_API_KEY=… PORT=8790 node proxy/server.mjs` and open the site with
+`?ai=http://localhost:8790`.
