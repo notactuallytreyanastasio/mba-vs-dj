@@ -1,0 +1,193 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
+      "node_type": "goal",
+      "title": "Career path after college: MBA or DJ?",
+      "description": "question=Which path would you pick? Hands up.\nunit=$k, 10-year net earnings",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:50.913086-04:00",
+      "updated_at": "2026-10-31T02:24:50.913086-04:00",
+      "metadata_json": "{\"confidence\":100,\"prompt\":\"MBA vs DJ as a career path — class decision tree\"}"
+    },
+    {
+      "id": 2,
+      "change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "node_type": "option",
+      "title": "MBA",
+      "description": "cost=250\nnote=Tuition plus two years of salary you do not earn\nquestion=Out of 100 MBA grads, how many land in each bucket?",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:58.089301-04:00",
+      "updated_at": "2026-10-31T02:24:58.089301-04:00",
+      "metadata_json": null
+    },
+    {
+      "id": 3,
+      "change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "node_type": "option",
+      "title": "DJ",
+      "description": "cost=15\nnote=Decks, laptop, software, first gigs\nquestion=Out of 100 people who go all-in on DJing, how many land in each bucket?",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:58.210753-04:00",
+      "updated_at": "2026-10-31T02:24:58.210753-04:00",
+      "metadata_json": null
+    },
+    {
+      "id": 4,
+      "change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "node_type": "outcome",
+      "title": "Consulting or banking",
+      "description": "payoff=2600\njoy=4",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:58.547603-04:00",
+      "updated_at": "2026-10-31T02:24:58.547603-04:00",
+      "metadata_json": "{\"confidence\":35}"
+    },
+    {
+      "id": 5,
+      "change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "node_type": "outcome",
+      "title": "Corporate management",
+      "description": "payoff=1700\njoy=5",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:58.769167-04:00",
+      "updated_at": "2026-10-31T02:24:58.769167-04:00",
+      "metadata_json": "{\"confidence\":50}"
+    },
+    {
+      "id": 6,
+      "change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "node_type": "outcome",
+      "title": "Leaves for something else",
+      "description": "payoff=900\njoy=6",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:58.992947-04:00",
+      "updated_at": "2026-10-31T02:24:58.992947-04:00",
+      "metadata_json": "{\"confidence\":15}"
+    },
+    {
+      "id": 7,
+      "change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "node_type": "outcome",
+      "title": "Headliner, touring",
+      "description": "payoff=8000\njoy=10",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:59.215824-04:00",
+      "updated_at": "2026-10-31T02:24:59.215824-04:00",
+      "metadata_json": "{\"confidence\":3}"
+    },
+    {
+      "id": 8,
+      "change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "node_type": "outcome",
+      "title": "Working DJ: clubs, weddings, residencies",
+      "description": "payoff=900\njoy=8",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:59.438304-04:00",
+      "updated_at": "2026-10-31T02:24:59.438304-04:00",
+      "metadata_json": "{\"confidence\":32}"
+    },
+    {
+      "id": 9,
+      "change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "node_type": "outcome",
+      "title": "Side gig plus a day job",
+      "description": "payoff=1100\njoy=6",
+      "status": "pending",
+      "created_at": "2026-10-31T02:24:59.659594-04:00",
+      "updated_at": "2026-10-31T02:24:59.659594-04:00",
+      "metadata_json": "{\"confidence\":65}"
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "from_node_id": 1,
+      "to_node_id": 2,
+      "from_change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
+      "to_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "path",
+      "created_at": "2026-10-31T02:24:58.322973-04:00"
+    },
+    {
+      "id": 2,
+      "from_node_id": 1,
+      "to_node_id": 3,
+      "from_change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
+      "to_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "path",
+      "created_at": "2026-10-31T02:24:58.433030-04:00"
+    },
+    {
+      "id": 3,
+      "from_node_id": 2,
+      "to_node_id": 4,
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "to_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "chance",
+      "created_at": "2026-10-31T02:24:58.654024-04:00"
+    },
+    {
+      "id": 4,
+      "from_node_id": 2,
+      "to_node_id": 5,
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "to_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "chance",
+      "created_at": "2026-10-31T02:24:58.877900-04:00"
+    },
+    {
+      "id": 5,
+      "from_node_id": 2,
+      "to_node_id": 6,
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "to_change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "chance",
+      "created_at": "2026-10-31T02:24:59.100141-04:00"
+    },
+    {
+      "id": 6,
+      "from_node_id": 3,
+      "to_node_id": 7,
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "to_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "chance",
+      "created_at": "2026-10-31T02:24:59.325051-04:00"
+    },
+    {
+      "id": 7,
+      "from_node_id": 3,
+      "to_node_id": 8,
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "to_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "chance",
+      "created_at": "2026-10-31T02:24:59.544284-04:00"
+    },
+    {
+      "id": 8,
+      "from_node_id": 3,
+      "to_node_id": 9,
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "to_change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "chance",
+      "created_at": "2026-10-31T02:24:59.766641-04:00"
+    }
+  ]
+}

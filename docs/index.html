@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MBA or DJ? A live decision tree</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --paper: #f6f3ec;
+    --ink: #1d1b18;
+    --muted: #6d675d;
+    --rule: #d9d3c7;
+    --accent: #c2410c;      /* chosen path */
+    --mba: #1e4e8c;
+    --dj: #8a2be2;
+    --good: #2f7d32;
+    --warn: #b45309;
+    --panel: #fffdf8;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px;
+    display: grid; grid-template-rows: auto 1fr; overflow: hidden;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button {
+    background: var(--panel); border: 1px solid var(--ink); border-radius: 3px;
+    padding: 4px 10px; cursor: pointer;
+  }
+  button:hover { background: var(--ink); color: var(--paper); }
+  button.primary { background: var(--ink); color: var(--paper); }
+  button.primary:hover { background: var(--accent); border-color: var(--accent); }
+  button.small { padding: 1px 7px; font-size: 13px; }
+
+  header {
+    display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap;
+    padding: 12px 20px 10px; border-bottom: 2px solid var(--ink);
+  }
+  header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: .01em; }
+  header h1 em { color: var(--accent); font-style: normal; }
+  #verdict { font-size: 20px; }
+  #verdict b { color: var(--accent); }
+  #verdict .margin { font-family: var(--mono); font-size: 15px; color: var(--muted); }
+  header .spacer { flex: 1; }
+  header .controls { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+
+  main { display: grid; grid-template-columns: 1fr 380px; min-height: 0; }
+  body.present main { grid-template-columns: 1fr 0; }
+  body.present aside { display: none; }
+  #left { display: grid; grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr); min-height: 0; }
+  #treewrap { overflow: auto; padding: 8px 12px; border-bottom: 1px solid var(--rule); }
+  svg#tree { display: block; width: 100%; height: 100%; min-height: 320px; }
+  #mathwrap { overflow: auto; padding: 10px 20px 20px; }
+
+  aside {
+    border-left: 2px solid var(--ink); background: var(--panel);
+    display: grid; grid-template-rows: auto 1fr; min-height: 0;
+  }
+  .tabs { display: flex; border-bottom: 1px solid var(--ink); }
+  .tabs button {
+    flex: 1; border: 0; border-right: 1px solid var(--rule); border-radius: 0;
+    padding: 9px 4px; background: transparent; font-size: 14px;
+  }
+  .tabs button.on { background: var(--ink); color: var(--paper); }
+  .tabpanel { overflow: auto; padding: 14px 16px 30px; }
+  .tabpanel[hidden] { display: none; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; margin: 18px 0 8px; color: var(--muted); font-weight: 600; }
+  h2:first-child { margin-top: 0; }
+  label.field { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 8px; margin: 7px 0; font-size: 14px; }
+  label.field input[type=text], label.field input[type=number], textarea {
+    width: 100%; border: 1px solid var(--rule); background: #fff; padding: 4px 6px; border-radius: 3px;
+  }
+  input[type=number] { font-family: var(--mono); }
+  .prow { display: grid; grid-template-columns: 1fr 72px; gap: 8px; align-items: center; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .hint { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .warnbox { background: #fdf0dc; border: 1px solid var(--warn); color: #6b3d06; padding: 6px 8px; font-size: 13px; border-radius: 3px; margin: 8px 0; }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+
+  /* math */
+  .math h3 { margin: 0 0 6px; font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .step { font-family: var(--mono); font-size: 15px; line-height: 1.55; padding: 4px 8px; border-left: 3px solid transparent; margin: 2px 0; border-radius: 2px; }
+  .step .lhs { font-weight: 700; }
+  .step .res { font-weight: 700; }
+  .step.decision { border-left-color: var(--accent); background: #fbeee6; }
+  .step .note { font-family: var(--sans); color: var(--muted); font-size: 13px; }
+  .changed { animation: flash 1.6s ease-out; }
+  @keyframes flash { 0% { background: #ffe08a; } 100% { background: transparent; } }
+  .step.decision.changed { animation: flashd 1.6s ease-out; }
+  @keyframes flashd { 0% { background: #ffe08a; } 100% { background: #fbeee6; } }
+
+  /* svg */
+  .edge { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+  .edge.best { stroke: var(--accent); stroke-width: 3.2; }
+  .prune { stroke: var(--ink); stroke-width: 2; }
+  .nlabel { font-size: 15px; }
+  .plabel { font-family: var(--mono); font-size: 13px; fill: var(--muted); }
+  .plabel.bad { fill: var(--warn); font-weight: 700; }
+  .ev { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+  .evbox { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+  .leafval { font-family: var(--mono); font-size: 14px; }
+  .shape { fill: var(--panel); stroke: var(--ink); stroke-width: 1.8; cursor: pointer; }
+  .shape.decision { fill: var(--ink); }
+  .hit { cursor: pointer; }
+  g.sel .shape { stroke: var(--accent); stroke-width: 3.5; }
+  g.sel .nlabel { fill: var(--accent); font-weight: 700; }
+  text.changed { animation: flasht 1.6s ease-out; }
+  @keyframes flasht { 0% { fill: #d97706; } 100% { fill: var(--ink); } }
+
+  /* poll */
+  .pollq { font-size: 19px; line-height: 1.35; margin: 4px 0 12px; }
+  .pollopt { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; margin: 8px 0; }
+  .pollopt .bar { height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; grid-column: 1 / -1; }
+  .pollopt .bar i { display: block; height: 100%; background: var(--accent); }
+  .tally { display: flex; align-items: center; gap: 4px; font-family: var(--mono); }
+  .tally input { width: 54px; text-align: center; border: 1px solid var(--rule); padding: 2px; }
+
+  /* table */
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 4px 4px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+  tr.snap { cursor: pointer; }
+  tr.snap:hover { background: #f1ece2; }
+  .log { font-size: 13px; font-family: var(--mono); line-height: 1.5; }
+  .log div { border-bottom: 1px dotted var(--rule); padding: 2px 0; }
+
+  dialog { border: 2px solid var(--ink); background: var(--panel); max-width: 860px; width: 92vw; padding: 18px; }
+  dialog::backdrop { background: rgba(29, 27, 24, .45); }
+  dialog textarea { height: 380px; font-family: var(--mono); font-size: 12.5px; }
+  .legend { font-size: 13px; color: var(--muted); display: flex; gap: 16px; padding: 2px 4px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MBA <em>or</em> DJ?</h1>
+  <div id="verdict"></div>
+  <div class="spacer"></div>
+  <div class="controls">
+    <span id="source" class="hint"></span>
+    <button id="undo" title="Undo (Ctrl/Cmd+Z)">Undo</button>
+    <button id="present" title="Hide the side panel for projecting">Present</button>
+  </div>
+</header>
+<main>
+  <section id="left">
+    <div id="treewrap">
+      <div class="legend">
+        <span><svg width="14" height="14"><rect x="1" y="1" width="12" height="12" fill="#1d1b18"/></svg> you decide</span>
+        <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#fffdf8" stroke="#1d1b18" stroke-width="1.6"/></svg> chance decides</span>
+        <span><svg width="14" height="14"><path d="M13 1 L13 13 L2 7 Z" fill="#fffdf8" stroke="#1d1b18" stroke-width="1.6"/></svg> where you end up</span>
+        <span><svg width="22" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#c2410c" stroke-width="3"/></svg> best choice</span>
+        <span><svg width="22" height="12"><line x1="0" y1="6" x2="22" y2="6" stroke="#1d1b18"/><line x1="8" y1="1" x2="6" y2="11" stroke="#1d1b18" stroke-width="2"/><line x1="13" y1="1" x2="11" y2="11" stroke="#1d1b18" stroke-width="2"/></svg> pruned</span>
+        <span>Click any node to edit it.</span>
+      </div>
+      <svg id="tree" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div id="mathwrap"><div class="math" id="math"></div></div>
+  </section>
+  <aside>
+    <div class="tabs">
+      <button data-tab="edit" class="on">Edit</button>
+      <button data-tab="poll">Poll</button>
+      <button data-tab="history">History</button>
+      <button data-tab="deciduous">Deciduous</button>
+    </div>
+    <div class="tabpanel" id="tab-edit"></div>
+    <div class="tabpanel" id="tab-poll" hidden></div>
+    <div class="tabpanel" id="tab-history" hidden></div>
+    <div class="tabpanel" id="tab-deciduous" hidden></div>
+  </aside>
+</main>
+
+<dialog id="exportdlg">
+  <h2>Record this session in deciduous</h2>
+  <p class="hint">Run this in a terminal inside the <code>mba-vs-dj</code> repo. Each change the class made becomes an
+    <code>observation</code> node linked to the node it revises, and a flipped decision gets recorded on the root.
+    After that, <code>./publish.sh</code> rebuilds <code>docs/graph-data.json</code>, and the site opens with the class's numbers.</p>
+  <textarea id="exporttext" readonly></textarea>
+  <div class="btnrow">
+    <button class="primary" id="copyexport">Copy</button>
+    <button id="dljson">Download tree as JSON</button>
+    <button onclick="document.getElementById('exportdlg').close()">Close</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * Model
+ *
+ * The tree comes from a deciduous graph export (docs/graph-data.json,
+ * written by `deciduous graph`). Mapping:
+ *   goal                      -> the root decision (you choose)
+ *   option                    -> a path you can choose; key `cost=` in description
+ *   outcome                   -> something chance picks; confidence = probability %
+ *                                keys `payoff=` and `joy=` in description
+ *   observation linked under  -> a revision of that node: `p=`, `payoff=`, `joy=`,
+ *   a tree node                  `cost=`, `title=`. Applied oldest first, so the
+ *                                latest revision is what the site shows.
+ * A node whose children are options is a decision; children that are outcomes
+ * make it a chance node; no children makes it an end point.
+ * ------------------------------------------------------------------ */
+
+const STORE = "mba-vs-dj/v1";
+let base = null;          // tree as deciduous has it (revisions applied)
+let tree = null;          // tree being edited in class
+let joyWeight = 0;        // $k per satisfaction point
+let selectedId = null;
+let polls = {};           // nodeId -> {optionId: votes}
+let gut = {};             // root option id -> votes
+let snapshots = [];
+let changelog = [];
+let undoStack = [];
+let lastValues = {};
+let unit = "$k";       // long form, from the root's `unit=`
+const UNIT = "$k";
+let rootQuestion = "";
+let sourceInfo = "";
+
+function parseKV(text) {
+  const out = {};
+  (text || "").split("\n").forEach(line => {
+    const m = line.match(/^\s*([a-z_]+)\s*=\s*(.*)$/i);
+    if (m) out[m[1].toLowerCase()] = m[2].trim();
+  });
+  return out;
+}
+const num = (v, d = 0) => (v === undefined || v === "" || isNaN(+v)) ? d : +v;
+
+function treeFromDeciduous(g) {
+  const byId = new Map(g.nodes.map(n => [n.id, n]));
+  const kids = new Map(), hasParent = new Set();
+  g.edges.forEach(e => {
+    if (!byId.has(e.from_node_id) || !byId.has(e.to_node_id)) return;
+    if (!kids.has(e.from_node_id)) kids.set(e.from_node_id, []);
+    kids.get(e.from_node_id).push(e.to_node_id);
+    hasParent.add(e.to_node_id);
+  });
+  const rootRaw = g.nodes.find(n => n.node_type === "goal" && !hasParent.has(n.id));
+  if (!rootRaw) throw new Error("No root goal node in graph-data.json");
+  const seen = new Set();
+
+  function build(raw, revisionsOut) {
+    if (seen.has(raw.id)) throw new Error("Cycle at node " + raw.id);
+    seen.add(raw.id);
+    const kv = parseKV(raw.description);
+    const meta = raw.metadata_json ? JSON.parse(raw.metadata_json) : {};
+    const node = {
+      id: "d" + raw.id, cid: raw.change_id, kind: raw.node_type, title: raw.title,
+      p: raw.node_type === "outcome" ? num(meta.confidence, 0) / 100 : null,
+      cost: num(kv.cost), payoff: num(kv.payoff), joy: num(kv.joy),
+      question: kv.question || "", note: kv.note || "", revisions: [], children: []
+    };
+    if (kv.unit && raw === rootRaw) unit = kv.unit;
+    const childRaws = (kids.get(raw.id) || []).map(i => byId.get(i));
+    childRaws.filter(c => c.node_type === "observation")
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .forEach(obs => {
+        const r = parseKV(obs.description);
+        const rev = { title: obs.title, at: obs.created_at, cid: obs.change_id };
+        if (r.p !== undefined) { rev.p = num(r.p); node.p = rev.p; }
+        ["payoff", "joy", "cost"].forEach(k => { if (r[k] !== undefined) { rev[k] = num(r[k]); node[k] = rev[k]; } });
+        if (r.title) { rev.newTitle = r.title; node.title = r.title; }
+        node.revisions.push(rev);
+      });
+    node.children = childRaws
+      .filter(c => c.node_type === "option" || c.node_type === "outcome")
+      .sort((a, b) => a.id - b.id)
+      .map(c => build(c));
+    return node;
+  }
+  const root = build(rootRaw);
+  rootQuestion = parseKV(rootRaw.description).question || "Which would you pick?";
+  return root;
+}
+
+function kindOf(node) {
+  if (!node.children.length) return "end";
+  return node.children.every(c => c.kind === "option") ? "decision" : "chance";
+}
+function walk(node, f, parent = null, depth = 0) { f(node, parent, depth); node.children.forEach(c => walk(c, f, node, depth + 1)); }
+function find(id, root = tree) { let hit = null; walk(root, n => { if (n.id === id) hit = n; }); return hit; }
+function parentOf(id, root = tree) { let hit = null; walk(root, (n, p) => { if (n.id === id) hit = p; }); return hit; }
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* Roll back the tree: every node gets a value.
+ *   end:      payoff + w*joy - cost
+ *   chance:   own - cost + sum(p_i * v_i)
+ *   decision: own - cost + max(v_i)
+ * Returns a map id -> {v, best, sumP, terms}.
+ */
+function rollback(root, w) {
+  const vals = {};
+  (function go(n) {
+    n.children.forEach(go);
+    const k = kindOf(n);
+    const own = n.payoff + w * n.joy - n.cost;
+    let v, best = null, sumP = null;
+    if (k === "end") v = own;
+    else if (k === "chance") {
+      sumP = n.children.reduce((s, c) => s + (c.p || 0), 0);
+      v = own + n.children.reduce((s, c) => s + (c.p || 0) * vals[c.id].v, 0);
+    } else {
+      best = n.children.reduce((b, c) => (b === null || vals[c.id].v > vals[b.id].v) ? c : b, null);
+      v = own + vals[best.id].v;
+    }
+    vals[n.id] = { v, best: best && best.id, sumP, own };
+  })(root);
+  return vals;
+}
+
+/* ------------------------------------------------------------------ *
+ * Formatting
+ * ------------------------------------------------------------------ */
+const money = v => {
+  const r = Math.round(v * 10) / 10;
+  const s = Math.abs(r).toLocaleString("en-US", { maximumFractionDigits: 1 });
+  return (r < 0 ? "−" : "") + "$" + s + "k";
+};
+const n0 = v => (Math.round(v * 10) / 10).toLocaleString("en-US", { maximumFractionDigits: 1 });
+const pct = p => (Math.round(p * 1000) / 10) + "%";
+const pdec = p => { const r = Math.round(p * 1000) / 1000; return r.toString().replace(/^0\./, "0."); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ------------------------------------------------------------------ *
+ * State, undo, persistence
+ * ------------------------------------------------------------------ */
+function save() {
+  localStorage.setItem(STORE, JSON.stringify({ tree, joyWeight, polls, gut, snapshots, changelog, baseStamp: baseStamp() }));
+}
+function baseStamp() { return JSON.stringify(base).length + ":" + (base.revisionsCount || 0); }
+function commit(desc, mutate) {
+  undoStack.push(JSON.stringify({ tree, joyWeight }));
+  if (undoStack.length > 200) undoStack.shift();
+  mutate();
+  if (desc) changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: desc });
+  save(); render();
+}
+function undo() {
+  const s = undoStack.pop(); if (!s) return;
+  const o = JSON.parse(s); tree = o.tree; joyWeight = o.joyWeight;
+  changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: "undo" });
+  save(); render();
+}
+
+/* ------------------------------------------------------------------ *
+ * Tree drawing
+ * ------------------------------------------------------------------ */
+const COL = 410, ROW = 92, LEFT = 40, TOP = 70, HSEG = 300;
+
+function layout(root) {
+  const pos = {}; let leaf = 0, maxDepth = 0;
+  (function go(n, d) {
+    maxDepth = Math.max(maxDepth, d);
+    if (!n.children.length) { pos[n.id] = { x: LEFT + d * COL, y: TOP + leaf++ * ROW }; return; }
+    n.children.forEach(c => go(c, d + 1));
+    const ys = n.children.map(c => pos[c.id].y);
+    pos[n.id] = { x: LEFT + d * COL, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+  })(root, 0);
+  return { pos, w: LEFT + maxDepth * COL + 330, h: TOP + Math.max(leaf - 1, 0) * ROW + 50 };
+}
+
+function drawTree(vals) {
+  const svg = document.getElementById("tree");
+  const { pos, w, h } = layout(tree);
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.style.minHeight = Math.min(h, 900) * 0.8 + "px";
+  let out = "";
+  const bestEdges = new Set();
+  (function mark(n) {           // highlight only along the path actually chosen
+    const k = kindOf(n);
+    if (k === "decision") { bestEdges.add(vals[n.id].best); mark(find(vals[n.id].best)); }
+    else if (k === "chance") n.children.forEach(c => { bestEdges.add(c.id); mark(c); });
+  })(tree);
+
+  walk(tree, (n, parent) => {
+    if (!parent) return;
+    const a = pos[parent.id], b = pos[n.id];
+    const kx = b.x - HSEG;
+    const best = bestEdges.has(n.id);
+    out += `<path class="edge ${best ? "best" : ""}" d="M${a.x + 13},${a.y} L${kx},${b.y} L${b.x - 14},${b.y}"/>`;
+    if (kindOf(parent) === "decision" && !best) {
+      const mx = b.x - 60, my = b.y;
+      out += `<line class="prune" x1="${mx - 3}" y1="${my - 8}" x2="${mx - 7}" y2="${my + 8}"/><line class="prune" x1="${mx + 4}" y1="${my - 8}" x2="${mx}" y2="${my + 8}"/>`;
+    }
+    const sel = n.id === selectedId ? "sel" : "";
+    out += `<g class="${sel} hit" data-id="${n.id}">`;
+    out += `<rect x="${kx}" y="${b.y - 28}" width="${HSEG - 14}" height="54" fill="transparent"/>`;
+    out += `<text class="nlabel" x="${kx + 4}" y="${b.y - 9}">${esc(n.title)}</text>`;
+    let sub = "";
+    const pk = kindOf(parent);
+    if (pk === "chance") {
+      const s = rollbackCache[parent.id].sumP;
+      sub = `<tspan class="plabel ${Math.abs(s - 1) > 0.0005 ? "bad" : ""}">p = ${pdec(n.p)}</tspan>`;
+    }
+    if (n.cost) sub += `<tspan class="plabel" dx="${sub ? 10 : 0}">cost ${money(-n.cost)}</tspan>`;
+    if (sub) out += `<text x="${kx + 4}" y="${b.y + 18}">${sub}</text>`;
+    out += `</g>`;
+  });
+
+  walk(tree, n => {
+    const { x, y } = pos[n.id];
+    const k = kindOf(n);
+    const sel = n.id === selectedId ? "sel" : "";
+    const ch = lastValues[n.id] !== undefined && Math.abs(lastValues[n.id] - vals[n.id].v) > 1e-9 ? "changed" : "";
+    out += `<g class="${sel} hit" data-id="${n.id}">`;
+    if (k === "decision") out += `<rect class="shape decision" x="${x - 12}" y="${y - 12}" width="24" height="24"/>`;
+    else if (k === "chance") out += `<circle class="shape" cx="${x}" cy="${y}" r="12"/>`;
+    else out += `<path class="shape" d="M${x + 12},${y - 12} L${x + 12},${y + 12} L${x - 12},${y} Z"/>`;
+    if (k === "end") {
+      const extra = joyWeight && n.joy ? ` <tspan class="plabel">(${money(n.payoff)} + ${n0(joyWeight)}×${n0(n.joy)} joy)</tspan>` : "";
+      out += `<text class="leafval ${ch}" x="${x + 20}" y="${y + 5}">${money(vals[n.id].v + n.cost)}${extra}</text>`;
+    } else {
+      const label = (k === "decision" ? "best " : "EV ") + money(vals[n.id].v);
+      const bw = label.length * 7.9 + 12;
+      const bx = n === tree ? x - 12 : x - bw / 2;
+      out += `<rect class="evbox" x="${bx}" y="${y - 42}" width="${bw}" height="22" rx="3"/>`;
+      out += `<text class="ev ${ch}" x="${bx + 6}" y="${y - 26}">${label}</text>`;
+      if (n === tree) out += `<text class="nlabel" x="${x - 12}" y="24" style="font-weight:600;font-size:18px">${esc(n.title)}</text>`;
+    }
+    out += `</g>`;
+  });
+  svg.innerHTML = out;
+  svg.querySelectorAll(".hit").forEach(g => g.addEventListener("click", e => {
+    e.stopPropagation(); selectedId = g.dataset.id; showTab("edit"); render();
+  }));
+}
+
+/* ------------------------------------------------------------------ *
+ * Math panel: backward induction, step by step, leaves first
+ * ------------------------------------------------------------------ */
+function drawMath(vals) {
+  const rows = [];
+  (function go(n) {
+    n.children.forEach(go);
+    const k = kindOf(n); if (k === "end") return;
+    const v = vals[n.id];
+    const ch = lastValues[n.id] !== undefined && Math.abs(lastValues[n.id] - v.v) > 1e-9 ? "changed" : "";
+    const term = c => {
+      const cv = vals[c.id].v;
+      return cv < 0 ? `(${money(cv)})` : money(cv);
+    };
+    const tail = [];
+    if (n.payoff) tail.push(`+ ${money(n.payoff)}`);
+    if (joyWeight && n.joy) tail.push(`+ ${n0(joyWeight)}×${n0(n.joy)}`);
+    if (n.cost) tail.push(`− ${money(n.cost)}`);
+    let line;
+    if (k === "chance") {
+      const terms = n.children.map(c => `${pdec(c.p)} × ${term(c)}`).join(" + ");
+      line = `<span class="lhs">EV(${esc(n.title)})</span> = ${terms} ${tail.join(" ")} = <span class="res">${money(v.v)}</span>`;
+      if (Math.abs(v.sumP - 1) > 0.0005)
+        line += ` <span class="note" style="color:var(--warn)">probabilities sum to ${pct(v.sumP)}, not 100%</span>`;
+    } else {
+      const opts = n.children.map(c => `${esc(c.title)} ${money(vals[c.id].v)}`).join(", ");
+      const best = find(v.best);
+      line = `<span class="lhs">Choose(${esc(n.title)})</span> = max(${opts}) ${tail.join(" ")} → <span class="res">${esc(best.title)}, ${money(v.v)}</span>`;
+    }
+    rows.push(`<div class="step ${k} ${ch}">${line}</div>`);
+  })(tree);
+
+  // explain where the leaf numbers come from once, when satisfaction is in play
+  let leafNote = "";
+  if (joyWeight) leafNote = `<div class="step"><span class="note">Each end point is worth earnings + ${n0(joyWeight)} × satisfaction (0–10), in ${unit}. Set the weight to 0 to go back to money only.</span></div>`;
+  const leaves = [];
+  walk(tree, n => { if (kindOf(n) === "end" && joyWeight) leaves.push(`${esc(n.title)}: ${money(n.payoff)} + ${n0(joyWeight)}×${n0(n.joy)} = ${money(n.payoff + joyWeight * n.joy)}`); });
+
+  document.getElementById("math").innerHTML =
+    `<h3>The math, worked backwards from the end points (${unit})</h3>` + leafNote +
+    (leaves.length ? `<div class="step" style="font-size:13px">${leaves.join("<br>")}</div>` : "") + rows.join("");
+}
+
+function drawVerdict(vals) {
+  const root = tree, v = vals[root.id];
+  if (kindOf(root) !== "decision") { document.getElementById("verdict").textContent = ""; return; }
+  const ranked = root.children.map(c => ({ c, v: vals[c.id].v })).sort((a, b) => b.v - a.v);
+  const margin = ranked.length > 1 ? ranked[0].v - ranked[1].v : 0;
+  document.getElementById("verdict").innerHTML =
+    `The math says <b>${esc(ranked[0].c.title)}</b> <span class="margin">by ${money(margin)} in expected value</span>`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Sensitivity: sweep one outcome's probability from 0 to 1, rescaling
+ * its siblings so they keep their proportions, and plot each root
+ * choice's value. The crossing is the break-even probability.
+ * ------------------------------------------------------------------ */
+function sweep(nodeId) {
+  const parent = parentOf(nodeId);
+  if (!parent || kindOf(parent) !== "chance") return null;
+  const pts = [];
+  for (let i = 0; i <= 200; i++) {
+    const x = i / 200;
+    const t = clone(tree);
+    const par = find(parent.id, t), me = find(nodeId, t);
+    const others = par.children.filter(c => c.id !== nodeId);
+    const rest = others.reduce((s, c) => s + c.p, 0);
+    me.p = x;
+    others.forEach(c => c.p = rest > 0 ? c.p * (1 - x) / rest : (1 - x) / others.length);
+    const v = rollback(t, joyWeight);
+    pts.push({ x, ys: t.children.map(c => v[c.id].v), best: v[t.id].best });
+  }
+  const crossings = [];
+  for (let i = 1; i < pts.length; i++) if (pts[i].best !== pts[i - 1].best) {
+    // refine linearly between samples
+    const a = pts[i - 1], b = pts[i];
+    const ia = tree.children.findIndex(c => c.id === a.best), ib = tree.children.findIndex(c => c.id === b.best);
+    const da = a.ys[ia] - a.ys[ib], db = b.ys[ia] - b.ys[ib];
+    const x = a.x + (b.x - a.x) * (da / (da - db));
+    crossings.push({ x, from: a.best, to: b.best });
+  }
+  return { pts, crossings };
+}
+
+function sweepChart(node) {
+  const s = sweep(node.id); if (!s || kindOf(tree) !== "decision") return "";
+  const W = 340, H = 190, L = 66, R = 10, T = 10, B = 30;
+  const all = s.pts.flatMap(p => p.ys);
+  let lo = Math.min(...all), hi = Math.max(...all); const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  const X = x => L + x * (W - L - R), Y = y => T + (1 - (y - lo) / (hi - lo)) * (H - T - B);
+  const colors = ["#1e4e8c", "#8a2be2", "#2f7d32", "#b45309", "#0e7490"];
+  let g = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="font-family:var(--mono);font-size:10px">`;
+  for (let t = 0; t <= 4; t++) {
+    const yv = lo + (hi - lo) * t / 4;
+    g += `<line x1="${L}" x2="${W - R}" y1="${Y(yv)}" y2="${Y(yv)}" stroke="#e6e0d4"/><text x="${L - 4}" y="${Y(yv) + 3}" text-anchor="end" fill="#6d675d">${money(Math.round(yv))}</text>`;
+  }
+  for (let t = 0; t <= 4; t++) g += `<text x="${X(t / 4)}" y="${H - 14}" text-anchor="middle" fill="#6d675d">${t * 25}%</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" fill="#6d675d">P(${esc(node.title)})</text>`;
+  tree.children.forEach((c, i) => {
+    const d = s.pts.map((p, j) => (j ? "L" : "M") + X(p.x).toFixed(1) + "," + Y(p.ys[i]).toFixed(1)).join("");
+    g += `<path d="${d}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="2.2"/>`;
+  });
+  s.crossings.forEach(cx => g += `<line x1="${X(cx.x)}" x2="${X(cx.x)}" y1="${T}" y2="${H - B}" stroke="#c2410c" stroke-dasharray="3 3"/>`);
+  g += `<line x1="${X(node.p)}" x2="${X(node.p)}" y1="${T}" y2="${H - B}" stroke="#1d1b18" stroke-width="1.5"/>`;
+  g += `<circle cx="${X(node.p)}" cy="${T + 3}" r="3" fill="#1d1b18"/></svg>`;
+  const key = tree.children.map((c, i) => `<span style="color:${colors[i % colors.length]};font-weight:700">— ${esc(c.title)}</span>`).join(" &nbsp; ");
+  const say = s.crossings.length
+    ? s.crossings.map(cx => `<b>${esc(find(cx.to).title)}</b> overtakes ${esc(find(cx.from).title)} at P(${esc(node.title)}) = <b>${pct(cx.x)}</b>`).join("<br>")
+    : `No probability for this outcome changes the decision: <b>${esc(find(s.pts[0].best).title)}</b> wins from 0% to 100%.`;
+  return `<h2>What would it take?</h2>${g}<div class="hint">${key}</div><p class="hint" style="color:var(--ink)">${say}</p>
+    <p class="hint">Black line: where it is now. The other outcomes on this branch keep their proportions as this one moves.</p>`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Side panels
+ * ------------------------------------------------------------------ */
+function drawEdit(vals) {
+  const el = document.getElementById("tab-edit");
+  const n = selectedId && find(selectedId);
+  let h = `<h2>Value of satisfaction</h2>
+    <label class="field"><span>${UNIT} per point</span>
+      <div class="prow"><input type="range" id="joyw" min="0" max="400" step="5" value="${joyWeight}"><input type="number" id="joywn" min="0" step="5" value="${joyWeight}"></div></label>
+    <p class="hint">Each end point has a satisfaction score from 0 to 10. At 0 the tree is money only. Raise it and ask: how much salary would you trade for a point of happiness?</p>`;
+  if (!n) {
+    h += `<h2>Edit</h2><p class="hint">Click a node in the tree to change its name, probability, payoff or cost.</p>`;
+    el.innerHTML = h; bindJoy(); return;
+  }
+  const parent = parentOf(n.id), k = kindOf(n), pk = parent && kindOf(parent);
+  h += `<h2>${k === "decision" ? "Decision" : k === "chance" ? "Chance node" : "End point"}${n.cid ? ` <span style="font-family:var(--mono);font-size:11px;letter-spacing:0">deciduous ${n.cid.slice(0, 8)}</span>` : ` <span style="font-size:11px">new, not in deciduous yet</span>`}</h2>
+    <label class="field"><span>Name</span><input type="text" id="f-title" value="${esc(n.title)}"></label>`;
+  if (pk === "chance") {
+    h += `<label class="field"><span>Probability</span>
+      <div class="prow"><input type="range" id="f-p" min="0" max="1" step="0.005" value="${n.p}"><input type="number" id="f-pn" min="0" max="100" step="0.5" value="${Math.round(n.p * 1000) / 10}"></div></label>`;
+    const s = vals[parent.id].sumP;
+    if (Math.abs(s - 1) > 0.0005)
+      h += `<div class="warnbox">The outcomes under “${esc(parent.title)}” add up to ${pct(s)}. Probabilities of everything that can happen must total 100%.
+        <div class="btnrow"><button class="small" id="normalize">Scale them to 100%</button><button class="small" id="absorb">Let the others absorb it</button></div></div>`;
+  }
+  if (k === "end") {
+    h += `<label class="field"><span>Earnings (${UNIT})</span><input type="number" id="f-payoff" step="50" value="${n.payoff}"></label>
+      <label class="field"><span>Satisfaction</span><div class="prow"><input type="range" id="f-joy" min="0" max="10" step="0.5" value="${n.joy}"><input type="number" id="f-joyn" min="0" max="10" step="0.5" value="${n.joy}"></div></label>`;
+  }
+  if (n !== tree) h += `<label class="field"><span>Cost (${UNIT})</span><input type="number" id="f-cost" step="5" value="${n.cost}"></label>`;
+  if (n.note) h += `<p class="hint">${esc(n.note)}</p>`;
+  h += `<div class="btnrow">`;
+  if (k !== "end" || n.kind === "option") h += `<button class="small" id="addout">+ outcome</button>`;
+  if (n === tree) h += `<button class="small" id="addopt">+ path to choose</button>`;
+  if (k === "chance") h += `<button class="small" id="topoll">Poll the class on this</button>`;
+  if (n !== tree) h += `<button class="small" id="delnode">Delete</button>`;
+  h += `</div>`;
+  if (n.revisions && n.revisions.length) {
+    h += `<h2>Revisions in deciduous</h2><div class="log">` +
+      n.revisions.map(r => `<div>${esc(r.at.slice(0, 10))} ${esc(r.title)}</div>`).join("") + `</div>`;
+  }
+  if (pk === "chance") h += sweepChart(n);
+  el.innerHTML = h;
+  bindJoy();
+
+  const on = (id, ev, f) => { const e = document.getElementById(id); if (e) e.addEventListener(ev, f); };
+  on("f-title", "change", e => { const old = n.title, v = e.target.value.trim() || old; commit(`renamed “${old}” → “${v}”`, () => find(n.id).title = v); });
+  // sliders: live update while dragging, one undo/log entry on release
+  let dragStart = null;
+  const live = (id, key, scale, label, fmt) => {
+    on(id, "input", e => {
+      if (dragStart === null) { dragStart = find(n.id)[key]; undoStack.push(JSON.stringify({ tree, joyWeight })); }
+      find(n.id)[key] = +e.target.value * scale; render(true);
+    });
+    on(id, "change", e => {
+      const now = find(n.id)[key];
+      if (dragStart !== null) changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `${label}(${n.title}) ${fmt(dragStart)} → ${fmt(now)}` });
+      dragStart = null; save(); render();
+    });
+  };
+  live("f-p", "p", 1, "P", pct);
+  live("f-joy", "joy", 1, "satisfaction", n0);
+  on("f-pn", "change", e => { const v = Math.max(0, Math.min(100, +e.target.value)) / 100; const old = n.p; commit(`P(${n.title}) ${pct(old)} → ${pct(v)}`, () => find(n.id).p = v); });
+  on("f-joyn", "change", e => { const v = +e.target.value; const old = n.joy; commit(`satisfaction(${n.title}) ${n0(old)} → ${n0(v)}`, () => find(n.id).joy = v); });
+  on("f-payoff", "change", e => { const v = +e.target.value; const old = n.payoff; commit(`earnings(${n.title}) ${money(old)} → ${money(v)}`, () => find(n.id).payoff = v); });
+  on("f-cost", "change", e => { const v = +e.target.value; const old = n.cost; commit(`cost(${n.title}) ${money(old)} → ${money(v)}`, () => find(n.id).cost = v); });
+  on("normalize", "click", () => commit(`scaled outcomes of ${parent.title} to 100%`, () => {
+    const par = find(parent.id), s = par.children.reduce((a, c) => a + c.p, 0);
+    par.children.forEach(c => c.p = s ? c.p / s : 1 / par.children.length);
+  }));
+  on("absorb", "click", () => commit(`others under ${parent.title} absorbed P(${n.title})`, () => {
+    const par = find(parent.id), me = find(n.id), others = par.children.filter(c => c !== me);
+    const rest = others.reduce((a, c) => a + c.p, 0);
+    others.forEach(c => c.p = rest > 0 ? c.p * (1 - me.p) / rest : (1 - me.p) / others.length);
+  }));
+  on("addout", "click", () => {
+    const id = "n" + Date.now();
+    commit(`added outcome under ${n.title}`, () => {
+      const me = find(n.id);
+      me.children.push({ id, cid: null, kind: "outcome", title: "New outcome", p: me.children.length ? 0 : 1, cost: 0, payoff: 0, joy: 5, question: "", note: "", revisions: [], children: [] });
+    });
+    selectedId = id; render();
+  });
+  on("addopt", "click", () => {
+    const id = "n" + Date.now();
+    commit(`added path “New path”`, () => tree.children.push({ id, cid: null, kind: "option", title: "New path", p: null, cost: 0, payoff: 0, joy: 5, question: "", note: "", revisions: [], children: [] }));
+    selectedId = id; render();
+  });
+  on("delnode", "click", () => {
+    if (!confirm(`Delete “${n.title}” and everything under it?`)) return;
+    commit(`deleted “${n.title}”`, () => { const par = find(parent.id); par.children = par.children.filter(c => c.id !== n.id); });
+    selectedId = parent.id; render();
+  });
+  on("topoll", "click", () => { pollTarget = n.id; showTab("poll"); });
+}
+
+function bindJoy() {
+  const r = document.getElementById("joyw"), b = document.getElementById("joywn");
+  let start = null;
+  r.addEventListener("input", () => {
+    if (start === null) { start = joyWeight; undoStack.push(JSON.stringify({ tree, joyWeight })); }
+    joyWeight = +r.value; b.value = r.value; render(true, true);
+  });
+  r.addEventListener("change", () => {
+    changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `satisfaction worth ${money(start ?? joyWeight)} → ${money(joyWeight)} per point` });
+    start = null; save(); render();
+  });
+  b.addEventListener("change", () => { const v = Math.max(0, +b.value), old = joyWeight; commit(`satisfaction worth ${money(old)} → ${money(v)} per point`, () => joyWeight = v); });
+}
+
+let pollTarget = null;
+function drawPoll(vals) {
+  const el = document.getElementById("tab-poll");
+  const chanceNodes = []; walk(tree, n => { if (kindOf(n) === "chance") chanceNodes.push(n); });
+  if (!pollTarget || (pollTarget !== "gut" && !find(pollTarget))) pollTarget = "gut";
+  let h = `<h2>Ask the class</h2><select id="pollpick" style="width:100%;padding:4px">
+    <option value="gut" ${pollTarget === "gut" ? "selected" : ""}>Gut check: which path would you pick?</option>` +
+    chanceNodes.map(n => `<option value="${n.id}" ${pollTarget === n.id ? "selected" : ""}>Odds: ${esc(n.title)}</option>`).join("") + `</select>`;
+
+  const target = pollTarget === "gut" ? tree : find(pollTarget);
+  const store = pollTarget === "gut" ? gut : (polls[pollTarget] = polls[pollTarget] || {});
+  const q = pollTarget === "gut" ? rootQuestion : (target.question || `Out of 100 people on the ${target.title} path, how many land in each bucket?`);
+  const total = target.children.reduce((s, c) => s + (+store[c.id] || 0), 0);
+  h += `<p class="pollq">${esc(q)}</p>`;
+  target.children.forEach(c => {
+    const v = +store[c.id] || 0, share = total ? v / total : 0;
+    h += `<div class="pollopt"><span>${esc(c.title)}</span>
+      <span class="tally"><button class="small" data-dec="${c.id}">−</button><input type="number" min="0" data-set="${c.id}" value="${v}"><button class="small" data-inc="${c.id}">+</button></span>
+      <div class="bar"><i style="width:${share * 100}%"></i></div>
+      <span class="hint">${total ? pct(share) : "—"}${pollTarget !== "gut" ? ` &nbsp; tree has ${pct(c.p)}` : ""}</span></div>`;
+  });
+  h += `<p class="hint">${total} ${total === 1 ? "answer" : "answers"}. Count hands, or type in numbers from a quick poll.</p><div class="btnrow">`;
+  if (pollTarget === "gut") {
+    if (total) {
+      const top = target.children.reduce((b, c) => (+store[c.id] || 0) > (+store[b.id] || 0) ? c : b);
+      const mathBest = find(vals[tree.id].best);
+      h += `</div><div class="${top.id === mathBest.id ? "" : "warnbox"}" style="padding:6px 0">The class went with <b>${esc(top.title)}</b>. The tree says <b>${esc(mathBest.title)}</b>.
+        ${top.id === mathBest.id ? "Gut and math agree, for now." : "Gut and math disagree. Which number in the tree would have to change for the class to be right?"}</div><div class="btnrow">`;
+    }
+  } else {
+    h += `<button class="primary" id="applypoll" ${total ? "" : "disabled"}>Use these as the probabilities</button>`;
+  }
+  h += `<button id="clearpoll">Clear votes</button></div>`;
+  if (pollTarget !== "gut") h += `<p class="hint">Using the poll sets each outcome's probability to its share of the votes. That is the class's subjective probability distribution. Save a snapshot first if you want to compare it later.</p>`;
+  el.innerHTML = h;
+
+  el.querySelector("#pollpick").addEventListener("change", e => { pollTarget = e.target.value; render(); });
+  const bump = (id, d) => { store[id] = Math.max(0, (+store[id] || 0) + d); save(); drawPoll(rollbackCache); };
+  el.querySelectorAll("[data-inc]").forEach(b => b.addEventListener("click", () => bump(b.dataset.inc, 1)));
+  el.querySelectorAll("[data-dec]").forEach(b => b.addEventListener("click", () => bump(b.dataset.dec, -1)));
+  el.querySelectorAll("[data-set]").forEach(i => i.addEventListener("change", () => { store[i.dataset.set] = Math.max(0, +i.value || 0); save(); drawPoll(rollbackCache); }));
+  el.querySelector("#clearpoll").addEventListener("click", () => { target.children.forEach(c => delete store[c.id]); save(); drawPoll(rollbackCache); });
+  const ap = el.querySelector("#applypoll");
+  if (ap) ap.addEventListener("click", () => {
+    const parts = target.children.map(c => `${c.title} ${pct((+store[c.id] || 0) / total)}`).join(", ");
+    commit(`class poll on ${target.title} (${total} votes): ${parts}`, () => {
+      const t = find(target.id); t.children.forEach(c => { c.p = (+store[c.id] || 0) / total; c.pollVotes = `${+store[c.id] || 0} of ${total}`; });
+    });
+  });
+}
+
+function rootSummary(t, w) {
+  const v = rollback(t, w);
+  return { best: find(v[t.id].best, t)?.title || "", evs: t.children.map(c => ({ title: c.title, v: v[c.id].v })) };
+}
+
+function drawHistory() {
+  const el = document.getElementById("tab-history");
+  const cur = rootSummary(tree, joyWeight);
+  const names = cur.evs.map(e => e.title);
+  const rows = [{ name: "From deciduous", t: base, w: 0, fixed: "base" }, ...snapshots.map((s, i) => ({ ...s, i })), { name: "Now", t: tree, w: joyWeight, fixed: "now" }];
+  let h = `<h2>Snapshots</h2><div class="btnrow"><input type="text" id="snapname" placeholder="e.g. After the class poll" style="flex:1;border:1px solid var(--rule);padding:3px 6px"><button class="primary" id="snap">Save</button></div>
+    <table><tr><th></th>${names.map(n => `<th style="text-align:right">${esc(n)}</th>`).join("")}<th>Pick</th></tr>`;
+  rows.forEach(r => {
+    const s = rootSummary(r.t, r.w);
+    h += `<tr class="${r.fixed === "now" ? "" : "snap"}" data-i="${r.fixed || r.i}"><td>${esc(r.name)}${r.w ? ` <span class="hint">(+joy ${n0(r.w)})</span>` : ""}</td>` +
+      names.map(nm => { const e = s.evs.find(x => x.title === nm); return `<td class="num">${e ? money(e.v) : "—"}</td>`; }).join("") +
+      `<td><b>${esc(s.best)}</b></td></tr>`;
+  });
+  h += `</table><p class="hint">Click a row to load it into the tree (you can undo). “From deciduous” is the graph as published.</p>
+    <div class="btnrow"><button id="resetall">Reset everything to the deciduous graph</button></div>
+    <h2>What changed, newest first</h2><div class="log">${changelog.map(c => `<div>${esc(c.at)} ${esc(c.text)}</div>`).join("") || `<span class="hint">Nothing yet.</span>`}</div>`;
+  el.innerHTML = h;
+  el.querySelector("#snap").addEventListener("click", () => {
+    const name = el.querySelector("#snapname").value.trim() || `Snapshot ${snapshots.length + 1}`;
+    snapshots.push({ name, t: clone(tree), w: joyWeight, at: new Date().toISOString() });
+    changelog.unshift({ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: `saved snapshot “${name}”` });
+    save(); render();
+  });
+  el.querySelectorAll("tr.snap").forEach(tr => tr.addEventListener("click", () => {
+    const i = tr.dataset.i; const s = i === "base" ? { name: "From deciduous", t: base, w: 0 } : snapshots[+i];
+    commit(`loaded snapshot “${s.name}”`, () => { tree = clone(s.t); joyWeight = s.w; });
+  }));
+  el.querySelector("#resetall").addEventListener("click", () => {
+    if (!confirm("Throw away the class's edits, polls, snapshots and history?")) return;
+    tree = clone(base); joyWeight = 0; polls = {}; gut = {}; snapshots = []; changelog = []; undoStack = []; save(); render();
+  });
+}
+
+function drawDeciduous() {
+  const el = document.getElementById("tab-deciduous");
+  let count = 0; walk(base, () => count++);
+  el.innerHTML = `<h2>Where the tree comes from</h2>
+    <p class="hint" style="color:var(--ink)">This tree is a <a href="https://github.com/notactuallytreyanastasio/deciduous">deciduous</a> decision graph. ${sourceInfo}</p>
+    <table>
+      <tr><th>deciduous node</th><th>in the tree</th></tr>
+      <tr><td>goal</td><td>the decision you make</td></tr>
+      <tr><td>option</td><td>a path you can choose (<code>cost=</code>)</td></tr>
+      <tr><td>outcome</td><td>what chance hands you. Its confidence is the probability. <code>payoff=</code>, <code>joy=</code></td></tr>
+      <tr><td>observation</td><td>a revision of the node it hangs off: <code>p=</code>, <code>payoff=</code>, <code>joy=</code>, <code>cost=</code></td></tr>
+    </table>
+    <h2>Send the class's changes back</h2>
+    <p class="hint">The site never writes to deciduous by itself. This turns every difference between the tree now and the published graph into deciduous commands you can run, so the next class opens on these numbers and the graph keeps the history of how they changed.</p>
+    <div class="btnrow"><button class="primary" id="export">Write deciduous commands</button></div>`;
+  el.querySelector("#export").addEventListener("click", openExport);
+}
+
+/* ------------------------------------------------------------------ *
+ * Export: diff the class tree against the deciduous baseline
+ * ------------------------------------------------------------------ */
+const shq = s => "'" + String(s).replace(/'/g, `'\\''`) + "'";
+function exportScript() {
+  const date = new Date().toISOString().slice(0, 10);
+  const L = [
+    "#!/bin/sh",
+    `# Class session ${date}, written by the MBA-or-DJ site.`,
+    "# Run from the root of the mba-vs-dj repo. Then ./publish.sh and push.",
+    "set -e",
+    `add() { deciduous add "$@" 2>&1 | sed -n 's/^Created node \\([0-9]*\\).*/\\1/p'; }`,
+    ""
+  ];
+  const baseById = {}; walk(base, n => baseById[n.id] = n);
+  const ref = {}; let v = 0, changes = 0;
+  walk(tree, (n, parent) => {
+    const b = baseById[n.id];
+    if (!b) {                                    // new node: create it under its parent
+      const pref = parent.cid ? parent.cid.slice(0, 8) : `"$${ref[parent.id]}"`;
+      const var_ = "n" + (++v); ref[n.id] = var_;
+      const desc = [n.cost && `cost=${n.cost}`, kindOf(n) === "end" && `payoff=${n.payoff}`, kindOf(n) === "end" && `joy=${n.joy}`].filter(Boolean).join("\\n");
+      const conf = n.kind === "outcome" ? ` -c ${Math.round(n.p * 100)}` : "";
+      L.push(`# new ${n.kind}: ${n.title}`);
+      L.push(`${var_}=$(add ${n.kind} ${shq(n.title)}${conf} -d "$(printf '%b' ${shq(desc)})")`);
+      L.push(`deciduous link ${pref} "$${var_}" -r ${shq("added in class " + date)}`);
+      if (n.kind === "outcome" && Math.abs(n.p * 100 - Math.round(n.p * 100)) > 1e-6)
+        L.push(`o=$(add observation ${shq(`exact probability ${pct(n.p)}`)} -d 'p=${+n.p.toFixed(4)}'); deciduous link "$${var_}" "$o" -r 'exact probability'`);
+      L.push(""); changes++;
+      return;
+    }
+    const diffs = [], kv = [];
+    if (n.title !== b.title) { diffs.push(`renamed to “${n.title}”`); kv.push(`title=${n.title}`); }
+    if (n.p !== null && Math.abs(n.p - b.p) > 1e-9) { diffs.push(`P ${pct(b.p)} → ${pct(n.p)}${n.pollVotes ? ` (class poll, ${n.pollVotes})` : ""}`); kv.push(`p=${+n.p.toFixed(4)}`); }
+    if (n.payoff !== b.payoff) { diffs.push(`earnings ${money(b.payoff)} → ${money(n.payoff)}`); kv.push(`payoff=${n.payoff}`); }
+    if (n.joy !== b.joy) { diffs.push(`satisfaction ${n0(b.joy)} → ${n0(n.joy)}`); kv.push(`joy=${n.joy}`); }
+    if (n.cost !== b.cost) { diffs.push(`cost ${money(b.cost)} → ${money(n.cost)}`); kv.push(`cost=${n.cost}`); }
+    if (!diffs.length) return;
+    const title = `Class revised ${b.title}: ${diffs.join("; ")}`;
+    L.push(`o=$(add observation ${shq(title)} -d "$(printf '%b' ${shq(kv.join("\\n"))})")`);
+    L.push(`deciduous link ${n.cid.slice(0, 8)} "$o" -r ${shq("class session " + date)}`, "");
+    changes++;
+  });
+  const removed = []; walk(base, n => { if (!find(n.id)) removed.push(n); });
+  removed.forEach(n => { L.push(`# “${n.title}” was deleted in class. Deciduous keeps it; mark it rejected:`, `deciduous status ${n.cid.slice(0, 8)} rejected`, ""); changes++; });
+
+  const before = rootSummary(base, 0), after = rootSummary(tree, joyWeight);
+  if (before.best !== after.best || joyWeight) {
+    const t = `Class session ${date}: decision ${before.best === after.best ? "stays" : "flips from " + before.best + " to"} ${after.best}` + (joyWeight ? ` with satisfaction worth ${money(joyWeight)}/point` : "");
+    const d = after.evs.map(e => `${e.title}: ${money(e.v)}`).join("; ");
+    L.push(`o=$(add observation ${shq(t)} -d ${shq(d)})`, `deciduous link ${tree.cid.slice(0, 8)} "$o" -r 'class verdict'`, "");
+  }
+  if (!changes) L.push("# The class tree matches the published graph. Nothing to record.");
+  else L.push("./publish.sh");
+  return L.join("\n");
+}
+function openExport() {
+  document.getElementById("exporttext").value = exportScript();
+  document.getElementById("exportdlg").showModal();
+}
+document.getElementById("copyexport").addEventListener("click", () => {
+  const t = document.getElementById("exporttext"); t.select(); navigator.clipboard?.writeText(t.value);
+});
+document.getElementById("dljson").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ tree, joyWeight, snapshots, changelog }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `mba-vs-dj-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+});
+
+/* ------------------------------------------------------------------ *
+ * Render loop
+ * ------------------------------------------------------------------ */
+let rollbackCache = {};
+function render(dragging = false, keepPanel = false) {
+  const vals = rollback(tree, joyWeight);
+  rollbackCache = vals;
+  drawTree(vals); drawMath(vals); drawVerdict(vals);
+  if (!dragging) { drawEdit(vals); drawPoll(vals); drawHistory(); drawDeciduous(); }
+  else if (!keepPanel) {
+    // keep the inputs the user is dragging, refresh the chart and readouts
+    const n = selectedId && find(selectedId);
+    const pn = document.getElementById("f-pn"); if (pn && n) pn.value = Math.round(n.p * 1000) / 10;
+    const jn = document.getElementById("f-joyn"); if (jn && n) jn.value = n.joy;
+    const chart = document.querySelector("#tab-edit svg[viewBox^='0 0 340']");
+    if (chart && n && parentOf(n.id) && kindOf(parentOf(n.id)) === "chance") {
+      const holder = document.createElement("div"); holder.innerHTML = sweepChart(n);
+      // the chart is the last section of the panel: drop it and its notes, append the fresh one
+      let el = chart.previousElementSibling; const gone = [];
+      while (el) { gone.push(el); el = el.nextElementSibling; }
+      gone.forEach(e => e.remove());
+      document.getElementById("tab-edit").append(...holder.childNodes);
+    }
+  }
+  lastValues = Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, v.v]));
+}
+
+function showTab(name) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
+  document.querySelectorAll(".tabpanel").forEach(p => p.hidden = p.id !== "tab-" + name);
+  render();
+}
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+document.getElementById("undo").addEventListener("click", undo);
+document.getElementById("present").addEventListener("click", () => {
+  document.body.classList.toggle("present");
+  document.getElementById("present").textContent = document.body.classList.contains("present") ? "Edit" : "Present";
+});
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "z" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); }
+  if (e.key === "Escape" && selectedId) { selectedId = null; render(); }
+});
+document.getElementById("treewrap").addEventListener("click", () => { if (selectedId) { selectedId = null; render(); } });
+
+async function boot() {
+  let g;
+  try {
+    const res = await fetch("graph-data.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(res.status + " " + res.statusText);
+    g = await res.json();
+  } catch (e) {
+    document.getElementById("math").innerHTML = `<div class="warnbox">Could not load graph-data.json (${esc(e.message)}). Run <code>./publish.sh</code> and serve the docs/ folder over http.</div>`;
+    throw e;
+  }
+  base = treeFromDeciduous(g);
+  let revs = 0; walk(base, n => revs += n.revisions.length); base.revisionsCount = revs;
+  const latest = g.nodes.map(n => n.updated_at || n.created_at).sort().pop() || "";
+  sourceInfo = `The published graph has ${g.nodes.length} nodes and ${g.edges.length} edges, last changed ${latest.slice(0, 10)}${revs ? `, with ${revs} class revision${revs > 1 ? "s" : ""} applied` : ""}.`;
+  document.getElementById("source").textContent = `deciduous graph · ${g.nodes.length} nodes${revs ? ` · ${revs} revisions` : ""}`;
+
+  const saved = JSON.parse(localStorage.getItem(STORE) || "null");
+  if (saved && saved.baseStamp === baseStamp()) {
+    ({ tree, joyWeight, polls, gut, snapshots, changelog } = saved);
+  } else {
+    // a new graph was published: start from it, keep nothing stale
+    tree = clone(base);
+    if (saved) changelog = [{ at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: "loaded a newer deciduous graph; earlier in-browser edits set aside" }];
+  }
+  render();
+}
+boot();
+</script>
+</body>
+</html>
