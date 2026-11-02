@@ -54,7 +54,9 @@ setInterval(() => {
 /* ---------------- prompts ---------------- */
 const TREE_PRIMER = `You are helping a teacher run a live class on decision trees, using a tree about choosing a career: MBA or DJ.
 The tree is given as JSON. Node kinds: "goal" is the decision (the student chooses), "option" is a path they can choose,
-"outcome" is something chance picks. Fields: p = probability of an outcome among its siblings (0 to 1, siblings should sum to 1),
+"outcome" is something chance picks. The tree has several stages: an outcome can lead to more outcomes (the next thing chance decides)
+or to options (a later choice the person makes, e.g. whether to quit the day job once the gigs come); at a later choice the math takes
+the best option, exactly as at the root. Fields: p = probability of an outcome among its siblings (0 to 1, siblings should sum to 1),
 payoff = 10-year net earnings in thousands of dollars ($k) at an end point, joy = satisfaction 0 to 10 at an end point,
 cost = $k paid to take that branch. joyWeight = $k one point of satisfaction is worth (0 means money only).
 ev = the rolled-back expected value already computed for each node; best = the option the math picks.

@@ -1,5 +1,25 @@
 {
   "edges": {
+    "0edb2f3fddddb2639105": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:18.009096-05:00",
+      "edge_id": "0edb2f3fddddb2639105",
+      "edge_type": "leads_to",
+      "from_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "rationale": "revision",
+      "to_change_id": "65fd0aef-f62f-4628-81dd-07dc5df7d9df",
+      "weight": 1.0
+    },
+    "104150c85ccd7bbdd404": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:15.387980-05:00",
+      "edge_id": "104150c85ccd7bbdd404",
+      "edge_type": "leads_to",
+      "from_change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "rationale": "return offer",
+      "to_change_id": "41de27a6-0df9-4328-9585-750c69925c55",
+      "weight": 1.0
+    },
     "11b74aa9175dad80c449": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:40:40.293949-04:00",
@@ -10,9 +30,20 @@
       "to_change_id": "1e65bde9-1d5d-4947-b867-916e0ce2dbd7",
       "weight": 1.0
     },
+    "1261e6a0512d8b23e5eb": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:19.353950-05:00",
+      "edge_id": "1261e6a0512d8b23e5eb",
+      "edge_type": "leads_to",
+      "from_change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "rationale": "revision",
+      "to_change_id": "9084848a-21c6-4459-9601-1ca04f645ab0",
+      "weight": 1.0
+    },
     "14f639c655e236ad0434": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:58.877900-04:00",
+      "deleted_at": "2026-11-02T18:41:25.258751-05:00",
       "edge_id": "14f639c655e236ad0434",
       "edge_type": "leads_to",
       "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
@@ -23,6 +54,7 @@
     "197df0914d0d55dbfb0f": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:58.654024-04:00",
+      "deleted_at": "2026-11-02T18:41:25.064482-05:00",
       "edge_id": "197df0914d0d55dbfb0f",
       "edge_type": "leads_to",
       "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
@@ -33,11 +65,22 @@
     "28f7dc549949cff39c08": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:59.100141-04:00",
+      "deleted_at": "2026-11-02T18:41:25.435789-05:00",
       "edge_id": "28f7dc549949cff39c08",
       "edge_type": "leads_to",
       "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
       "rationale": "chance",
       "to_change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "weight": 1.0
+    },
+    "300b173bf55321652b8c": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:14.638841-05:00",
+      "edge_id": "300b173bf55321652b8c",
+      "edge_type": "leads_to",
+      "from_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "rationale": "summer internship",
+      "to_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
       "weight": 1.0
     },
     "3620660804c0f66f1da0": {
@@ -60,9 +103,90 @@
       "to_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
       "weight": 1.0
     },
+    "57a12303d54b05517376": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:17.057817-05:00",
+      "edge_id": "57a12303d54b05517376",
+      "edge_type": "leads_to",
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "rationale": "revision",
+      "to_change_id": "eec926f4-5569-4d93-87a7-09c220eddaec",
+      "weight": 1.0
+    },
+    "638d4da609c12362dca1": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:18.853596-05:00",
+      "edge_id": "638d4da609c12362dca1",
+      "edge_type": "leads_to",
+      "from_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "rationale": "revision",
+      "to_change_id": "4d31965e-d3b8-466a-ab75-4e860dfb23c1",
+      "weight": 1.0
+    },
+    "6a09fc16fdab2107e11e": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:17.541356-05:00",
+      "edge_id": "6a09fc16fdab2107e11e",
+      "edge_type": "leads_to",
+      "from_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "rationale": "revision",
+      "to_change_id": "9bc9ecf9-27b7-426e-b7f2-3739041810af",
+      "weight": 1.0
+    },
+    "7efcefe8bf2ec4cc97af": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:18.433826-05:00",
+      "edge_id": "7efcefe8bf2ec4cc97af",
+      "edge_type": "leads_to",
+      "from_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "rationale": "revision",
+      "to_change_id": "68b21fc8-89bd-4cbf-b70e-ccbbbdbc75c0",
+      "weight": 1.0
+    },
+    "901ce298eec79d7d3389": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:16.176636-05:00",
+      "edge_id": "901ce298eec79d7d3389",
+      "edge_type": "leads_to",
+      "from_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "rationale": "room size, full-time",
+      "to_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "weight": 1.0
+    },
+    "9b2086326d17b7da0cf7": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:15.575166-05:00",
+      "edge_id": "9b2086326d17b7da0cf7",
+      "edge_type": "leads_to",
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "rationale": "first year of gigs",
+      "to_change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "weight": 1.0
+    },
+    "9efc788539b9536f0f96": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:15.772776-05:00",
+      "edge_id": "9efc788539b9536f0f96",
+      "edge_type": "leads_to",
+      "from_change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "rationale": "a choice once you're booked",
+      "to_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "weight": 1.0
+    },
+    "ab1dbee6363d96461cdc": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:15.978299-05:00",
+      "edge_id": "ab1dbee6363d96461cdc",
+      "edge_type": "leads_to",
+      "from_change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "rationale": "a choice once you're booked",
+      "to_change_id": "0af7f0b4-3f61-4511-9dee-1979d34251d5",
+      "weight": 1.0
+    },
     "b923ab5a368f267e9ee7": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:59.325051-04:00",
+      "deleted_at": "2026-11-02T18:41:25.622267-05:00",
       "edge_id": "b923ab5a368f267e9ee7",
       "edge_type": "leads_to",
       "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
@@ -70,9 +194,50 @@
       "to_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
       "weight": 1.0
     },
+    "c1377454f12788bc4d68": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:16.436213-05:00",
+      "edge_id": "c1377454f12788bc4d68",
+      "edge_type": "leads_to",
+      "from_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "rationale": "room size, full-time",
+      "to_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "weight": 1.0
+    },
+    "c16064fc4674d7e1adc2": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:13.911635-05:00",
+      "edge_id": "c16064fc4674d7e1adc2",
+      "edge_type": "leads_to",
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "rationale": "applying: chance decides admission",
+      "to_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "weight": 1.0
+    },
+    "c3aeb75eba75de1ae6fc": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:14.921537-05:00",
+      "edge_id": "c3aeb75eba75de1ae6fc",
+      "edge_type": "leads_to",
+      "from_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "rationale": "summer internship",
+      "to_change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "weight": 1.0
+    },
+    "c4f7b9d6966e462ecd8d": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:15.138929-05:00",
+      "edge_id": "c4f7b9d6966e462ecd8d",
+      "edge_type": "leads_to",
+      "from_change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "rationale": "return offer",
+      "to_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "weight": 1.0
+    },
     "c8d154e0e3121d091287": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:24:59.544284-04:00",
+      "deleted_at": "2026-11-02T18:41:25.883048-05:00",
       "edge_id": "c8d154e0e3121d091287",
       "edge_type": "leads_to",
       "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
@@ -100,6 +265,16 @@
       "to_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
       "weight": 1.0
     },
+    "eeaaf1e868b7e9911205": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:16.628964-05:00",
+      "edge_id": "eeaaf1e868b7e9911205",
+      "edge_type": "leads_to",
+      "from_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "rationale": "room size, full-time",
+      "to_change_id": "073cab7e-af3f-423a-a503-5b542b0eaaef",
+      "weight": 1.0
+    },
     "ef1b19956c26478be31a": {
       "author": "Bobby Grayson",
       "created_at": "2026-10-31T02:40:39.761124-04:00",
@@ -109,9 +284,70 @@
       "rationale": "realistic DJ economics",
       "to_change_id": "dd6b510f-d51a-4821-a5a9-a4d0b5f7d9ec",
       "weight": 1.0
+    },
+    "f39bbc088ca4f151adfc": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:14.418645-05:00",
+      "edge_id": "f39bbc088ca4f151adfc",
+      "edge_type": "leads_to",
+      "from_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "rationale": "summer internship",
+      "to_change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "weight": 1.0
+    },
+    "f46888989abd51e3c46b": {
+      "author": "Bobby Grayson",
+      "created_at": "2026-11-02T18:41:14.109467-05:00",
+      "edge_id": "f46888989abd51e3c46b",
+      "edge_type": "leads_to",
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "rationale": "applying: chance decides admission",
+      "to_change_id": "13bd80e7-897e-47a1-ae84-2cf604bbd31a",
+      "weight": 1.0
     }
   },
   "nodes": {
+    "073cab7e-af3f-423a-a503-5b542b0eaaef": {
+      "author": "Bobby Grayson",
+      "change_id": "073cab7e-af3f-423a-a503-5b542b0eaaef",
+      "created_at": "2026-11-02T18:41:02.093138-05:00",
+      "description": "payoff=200\njoy=5",
+      "metadata": {
+        "branch": "main",
+        "confidence": 40
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Back to small rooms",
+      "updated_at": "2026-11-02T18:41:02.093138-05:00"
+    },
+    "0af7f0b4-3f61-4511-9dee-1979d34251d5": {
+      "author": "Bobby Grayson",
+      "change_id": "0af7f0b4-3f61-4511-9dee-1979d34251d5",
+      "created_at": "2026-11-02T18:41:01.846361-05:00",
+      "description": "payoff=550\njoy=5\nnote=Mostly day-job money, plus weekend gigs. Tired.",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "option",
+      "status": "pending",
+      "title": "Keep the day job, DJ weekends",
+      "updated_at": "2026-11-02T18:41:01.846361-05:00"
+    },
+    "13bd80e7-897e-47a1-ae84-2cf604bbd31a": {
+      "author": "Bobby Grayson",
+      "change_id": "13bd80e7-897e-47a1-ae84-2cf604bbd31a",
+      "created_at": "2026-11-02T18:41:00.726123-05:00",
+      "description": "payoff=900\njoy=5",
+      "metadata": {
+        "branch": "main",
+        "confidence": 25
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Not admitted: keeps current job",
+      "updated_at": "2026-11-02T18:41:00.726123-05:00"
+    },
     "14349dd7-b44d-48c5-87ca-29b78c0fce3a": {
       "author": "Bobby Grayson",
       "change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
@@ -174,6 +410,20 @@
       "title": "Working DJ: clubs, weddings, residencies",
       "updated_at": "2026-10-31T02:24:59.438304-04:00"
     },
+    "41de27a6-0df9-4328-9585-750c69925c55": {
+      "author": "Bobby Grayson",
+      "change_id": "41de27a6-0df9-4328-9585-750c69925c55",
+      "created_at": "2026-11-02T18:41:01.246436-05:00",
+      "description": "payoff=1600\njoy=4",
+      "metadata": {
+        "branch": "main",
+        "confidence": 20
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "No return offer, recruits again",
+      "updated_at": "2026-11-02T18:41:01.246436-05:00"
+    },
     "47d138e2-9465-49a6-bc48-0ca274b7ea77": {
       "author": "Bobby Grayson",
       "change_id": "47d138e2-9465-49a6-bc48-0ca274b7ea77",
@@ -188,6 +438,19 @@
       "title": "Career path after college: MBA or DJ?",
       "updated_at": "2026-10-31T02:24:50.913086-04:00"
     },
+    "4d31965e-d3b8-466a-ab75-4e860dfb23c1": {
+      "author": "Bobby Grayson",
+      "change_id": "4d31965e-d3b8-466a-ab75-4e860dfb23c1",
+      "created_at": "2026-11-02T18:41:18.655656-05:00",
+      "description": "p=0.52",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Restructured: about half of full-time DJs settle into club rooms",
+      "updated_at": "2026-11-02T18:41:18.655656-05:00"
+    },
     "531c69f1-de55-4ecb-a6a8-93aac773dd84": {
       "author": "Bobby Grayson",
       "change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
@@ -200,6 +463,47 @@
       "status": "pending",
       "title": "Headliner, touring",
       "updated_at": "2026-10-31T02:24:59.215824-04:00"
+    },
+    "57acc984-f673-4d03-af08-bdef8f292aa7": {
+      "author": "Bobby Grayson",
+      "change_id": "57acc984-f673-4d03-af08-bdef8f292aa7",
+      "created_at": "2026-11-02T18:40:47.228500-05:00",
+      "deleted_at": "2026-11-02T18:41:00.257346-05:00",
+      "description": "cost=240\nnote=Tuition plus two years without a salary.\nquestion=Out of 100 people who apply to MBA programs, how many get in somewhere?",
+      "metadata": {
+        "branch": "main",
+        "confidence": 75
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Admitted",
+      "updated_at": "2026-11-02T18:40:47.228500-05:00"
+    },
+    "65fd0aef-f62f-4628-81dd-07dc5df7d9df": {
+      "author": "Bobby Grayson",
+      "change_id": "65fd0aef-f62f-4628-81dd-07dc5df7d9df",
+      "created_at": "2026-11-02T18:41:17.743608-05:00",
+      "description": "p=0.45",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Restructured: corporate management is the most common internship outcome",
+      "updated_at": "2026-11-02T18:41:17.743608-05:00"
+    },
+    "68b21fc8-89bd-4cbf-b70e-ccbbbdbc75c0": {
+      "author": "Bobby Grayson",
+      "change_id": "68b21fc8-89bd-4cbf-b70e-ccbbbdbc75c0",
+      "created_at": "2026-11-02T18:41:18.212743-05:00",
+      "description": "p=0.08",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Restructured: big rooms only happen if you go full-time, and then 8% of the time",
+      "updated_at": "2026-11-02T18:41:18.212743-05:00"
     },
     "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4": {
       "author": "Bobby Grayson",
@@ -223,6 +527,60 @@
       "status": "pending",
       "title": "MBA",
       "updated_at": "2026-10-31T02:24:58.089301-04:00"
+    },
+    "8022f1a7-e66e-4752-92ce-e83ae555161c": {
+      "author": "Bobby Grayson",
+      "change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "created_at": "2026-11-02T18:41:00.456662-05:00",
+      "description": "cost=240\nnote=Tuition plus two years without a salary.\nquestion=Out of 100 admitted MBA students, how many land each kind of summer internship?",
+      "metadata": {
+        "branch": "main",
+        "confidence": 75
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Admitted",
+      "updated_at": "2026-11-02T18:41:00.456662-05:00"
+    },
+    "9084848a-21c6-4459-9601-1ca04f645ab0": {
+      "author": "Bobby Grayson",
+      "change_id": "9084848a-21c6-4459-9601-1ca04f645ab0",
+      "created_at": "2026-11-02T18:41:19.160716-05:00",
+      "description": "p=0.60",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Restructured: 60% of new DJs never get regular bookings",
+      "updated_at": "2026-11-02T18:41:19.160716-05:00"
+    },
+    "9bc9ecf9-27b7-426e-b7f2-3739041810af": {
+      "author": "Bobby Grayson",
+      "change_id": "9bc9ecf9-27b7-426e-b7f2-3739041810af",
+      "created_at": "2026-11-02T18:41:17.252720-05:00",
+      "description": "p=0.80",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Restructured: consulting or banking now takes a top-firm internship, then the return offer",
+      "updated_at": "2026-11-02T18:41:17.252720-05:00"
+    },
+    "b78e4098-d28b-4e19-a0a9-e7ae21c804f5": {
+      "author": "Bobby Grayson",
+      "change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "created_at": "2026-11-02T18:41:00.952347-05:00",
+      "description": "question=Out of 100 students with a consulting or banking internship, how many get the return offer?",
+      "metadata": {
+        "branch": "main",
+        "confidence": 40
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Top-firm summer internship",
+      "updated_at": "2026-11-02T18:41:00.952347-05:00"
     },
     "bb4d6b4a-ab1a-40b3-a050-f3592b76b906": {
       "author": "Bobby Grayson",
@@ -250,6 +608,32 @@
       "title": "Revised: big rooms (~1,000 people) are the lucky ceiling, not touring headliners",
       "updated_at": "2026-10-31T02:40:39.281588-04:00"
     },
+    "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0": {
+      "author": "Bobby Grayson",
+      "change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "created_at": "2026-11-02T18:41:01.650028-05:00",
+      "description": "question=Out of 100 DJs who go full-time, how many end up in each size of room?",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "option",
+      "status": "pending",
+      "title": "Quit the day job, go full-time",
+      "updated_at": "2026-11-02T18:41:01.650028-05:00"
+    },
+    "eec926f4-5569-4d93-87a7-09c220eddaec": {
+      "author": "Bobby Grayson",
+      "change_id": "eec926f4-5569-4d93-87a7-09c220eddaec",
+      "created_at": "2026-11-02T18:41:16.862927-05:00",
+      "description": "cost=10\nnote=GMAT and application fees.",
+      "metadata": {
+        "branch": "main"
+      },
+      "node_type": "observation",
+      "status": "pending",
+      "title": "Restructured: an MBA starts with applying; tuition moves to Admitted",
+      "updated_at": "2026-11-02T18:41:16.862927-05:00"
+    },
     "ef7a2210-b97b-4795-a34f-084c2cbe2fe6": {
       "author": "Bobby Grayson",
       "change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
@@ -262,6 +646,20 @@
       "status": "pending",
       "title": "Corporate management",
       "updated_at": "2026-10-31T02:24:58.769167-04:00"
+    },
+    "f48b000a-30c3-4655-8133-ec7aaf0c9254": {
+      "author": "Bobby Grayson",
+      "change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "created_at": "2026-11-02T18:41:01.448182-05:00",
+      "description": "note=A weekly slot somewhere, a few hundred dollars a night.",
+      "metadata": {
+        "branch": "main",
+        "confidence": 40
+      },
+      "node_type": "outcome",
+      "status": "pending",
+      "title": "Gets regular local bookings",
+      "updated_at": "2026-11-02T18:41:01.448182-05:00"
     }
   },
   "tags": {},

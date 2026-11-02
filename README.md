@@ -5,6 +5,33 @@ decision graph; the site in `docs/` draws it, rolls it back, and shows every ste
 
 **Live:** https://notactuallytreyanastasio.github.io/mba-vs-dj/
 
+## The tree
+
+Each path is a few steps of life, not one jump to the end:
+
+```
+MBA (applications $10k)
+├─ Admitted 75% (tuition and two years without salary, $240k)
+│  ├─ Corporate management 45%                    $1,700k
+│  ├─ Leaves for something else 15%               $900k
+│  └─ Top-firm summer internship 40%
+│     ├─ Consulting or banking 80%                $2,600k
+│     └─ No return offer, recruits again 20%      $1,600k
+└─ Not admitted: keeps current job 25%            $900k
+DJ (gear $15k)
+├─ Small rooms, ~15 people 60%                    $250k
+└─ Gets regular local bookings 40%   ← a later choice
+   ├─ Quit the day job, go full-time
+   │  ├─ Big rooms, ~1,000 people (lucky) 8%      $1,200k
+   │  ├─ Club rooms, ~100 people 52%              $400k
+   │  └─ Back to small rooms 40%                  $200k
+   └─ Keep the day job, DJ weekends               $550k
+```
+
+EV(MBA) = $1,430k, EV(DJ) = $355k. The later choice is the one to teach with: on money, a booked DJ keeps the day
+job ($550k against $384k for going full-time), but going full-time has the happier rooms (6.96 against 5), so it
+wins once a point of satisfaction is worth about $85k. The root decision needs about $725k a point to flip.
+
 ## Running a class
 
 1. **Gut check.** Poll tab, "Gut check". Count hands for MBA vs DJ before showing any numbers.
@@ -12,7 +39,10 @@ decision graph; the site in `docs/` draws it, rolls it back, and shows every ste
    backwards from the end points: each circle is a probability-weighted average, each square takes the best branch.
 3. **Ask for the odds.** Poll tab, pick a chance node ("Odds: DJ"), type in how many students picked each bucket,
    then "Use these as the probabilities". The tree and the math update.
-4. **Argue about a number.** Click any node to change its probability, earnings or cost. The "What would it take?"
+4. **Argue about a number.** Click any name or number on the tree and type over it (Enter keeps it, Esc puts it
+   back, Tab moves to the same field on the next node; `35`, `35%` and `0.35` are all 35%, `1.2m` is $1,200k).
+   Clicking a node puts a toolbar for it in the corner of the tree: add what happens next, add a choice, rename,
+   delete. The Edit tab has the rest: satisfaction, notes, revisions. The "What would it take?"
    chart shows the probability at which the decision flips, or that none does. In the shipped tree, no
    probability of playing big rooms makes DJ win on money: a DJ who plays 1,000-person rooms for ten years
    still ends up behind the MBA average.

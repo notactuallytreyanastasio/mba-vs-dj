@@ -131,6 +131,160 @@
       "created_at": "2026-10-31T02:40:40.579165-04:00",
       "updated_at": "2026-10-31T02:40:40.579165-04:00",
       "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 14,
+      "change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "node_type": "outcome",
+      "title": "Admitted",
+      "description": "cost=240\nnote=Tuition plus two years without a salary.\nquestion=Out of 100 admitted MBA students, how many land each kind of summer internship?",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:00.456662-05:00",
+      "updated_at": "2026-11-02T18:41:00.456662-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":75}"
+    },
+    {
+      "id": 15,
+      "change_id": "13bd80e7-897e-47a1-ae84-2cf604bbd31a",
+      "node_type": "outcome",
+      "title": "Not admitted: keeps current job",
+      "description": "payoff=900\njoy=5",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:00.726123-05:00",
+      "updated_at": "2026-11-02T18:41:00.726123-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":25}"
+    },
+    {
+      "id": 16,
+      "change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "node_type": "outcome",
+      "title": "Top-firm summer internship",
+      "description": "question=Out of 100 students with a consulting or banking internship, how many get the return offer?",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:00.952347-05:00",
+      "updated_at": "2026-11-02T18:41:00.952347-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":40}"
+    },
+    {
+      "id": 17,
+      "change_id": "41de27a6-0df9-4328-9585-750c69925c55",
+      "node_type": "outcome",
+      "title": "No return offer, recruits again",
+      "description": "payoff=1600\njoy=4",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:01.246436-05:00",
+      "updated_at": "2026-11-02T18:41:01.246436-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":20}"
+    },
+    {
+      "id": 18,
+      "change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "node_type": "outcome",
+      "title": "Gets regular local bookings",
+      "description": "note=A weekly slot somewhere, a few hundred dollars a night.",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:01.448182-05:00",
+      "updated_at": "2026-11-02T18:41:01.448182-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":40}"
+    },
+    {
+      "id": 19,
+      "change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "node_type": "option",
+      "title": "Quit the day job, go full-time",
+      "description": "question=Out of 100 DJs who go full-time, how many end up in each size of room?",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:01.650028-05:00",
+      "updated_at": "2026-11-02T18:41:01.650028-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 20,
+      "change_id": "0af7f0b4-3f61-4511-9dee-1979d34251d5",
+      "node_type": "option",
+      "title": "Keep the day job, DJ weekends",
+      "description": "payoff=550\njoy=5\nnote=Mostly day-job money, plus weekend gigs. Tired.",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:01.846361-05:00",
+      "updated_at": "2026-11-02T18:41:01.846361-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 21,
+      "change_id": "073cab7e-af3f-423a-a503-5b542b0eaaef",
+      "node_type": "outcome",
+      "title": "Back to small rooms",
+      "description": "payoff=200\njoy=5",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:02.093138-05:00",
+      "updated_at": "2026-11-02T18:41:02.093138-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":40}"
+    },
+    {
+      "id": 22,
+      "change_id": "eec926f4-5569-4d93-87a7-09c220eddaec",
+      "node_type": "observation",
+      "title": "Restructured: an MBA starts with applying; tuition moves to Admitted",
+      "description": "cost=10\nnote=GMAT and application fees.",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:16.862927-05:00",
+      "updated_at": "2026-11-02T18:41:16.862927-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 23,
+      "change_id": "9bc9ecf9-27b7-426e-b7f2-3739041810af",
+      "node_type": "observation",
+      "title": "Restructured: consulting or banking now takes a top-firm internship, then the return offer",
+      "description": "p=0.80",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:17.252720-05:00",
+      "updated_at": "2026-11-02T18:41:17.252720-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 24,
+      "change_id": "65fd0aef-f62f-4628-81dd-07dc5df7d9df",
+      "node_type": "observation",
+      "title": "Restructured: corporate management is the most common internship outcome",
+      "description": "p=0.45",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:17.743608-05:00",
+      "updated_at": "2026-11-02T18:41:17.743608-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 25,
+      "change_id": "68b21fc8-89bd-4cbf-b70e-ccbbbdbc75c0",
+      "node_type": "observation",
+      "title": "Restructured: big rooms only happen if you go full-time, and then 8% of the time",
+      "description": "p=0.08",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:18.212743-05:00",
+      "updated_at": "2026-11-02T18:41:18.212743-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 26,
+      "change_id": "4d31965e-d3b8-466a-ab75-4e860dfb23c1",
+      "node_type": "observation",
+      "title": "Restructured: about half of full-time DJs settle into club rooms",
+      "description": "p=0.52",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:18.655656-05:00",
+      "updated_at": "2026-11-02T18:41:18.655656-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
+    },
+    {
+      "id": 27,
+      "change_id": "9084848a-21c6-4459-9601-1ca04f645ab0",
+      "node_type": "observation",
+      "title": "Restructured: 60% of new DJs never get regular bookings",
+      "description": "p=0.60",
+      "status": "pending",
+      "created_at": "2026-11-02T18:41:19.160716-05:00",
+      "updated_at": "2026-11-02T18:41:19.160716-05:00",
+      "metadata_json": "{\"branch\":\"main\"}"
     }
   ],
   "edges": [
@@ -155,61 +309,6 @@
       "weight": 1.0,
       "rationale": "path",
       "created_at": "2026-10-31T02:24:58.433030-04:00"
-    },
-    {
-      "id": 3,
-      "from_node_id": 2,
-      "to_node_id": 4,
-      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
-      "to_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
-      "edge_type": "leads_to",
-      "weight": 1.0,
-      "rationale": "chance",
-      "created_at": "2026-10-31T02:24:58.654024-04:00"
-    },
-    {
-      "id": 4,
-      "from_node_id": 2,
-      "to_node_id": 5,
-      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
-      "to_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
-      "edge_type": "leads_to",
-      "weight": 1.0,
-      "rationale": "chance",
-      "created_at": "2026-10-31T02:24:58.877900-04:00"
-    },
-    {
-      "id": 5,
-      "from_node_id": 2,
-      "to_node_id": 6,
-      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
-      "to_change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
-      "edge_type": "leads_to",
-      "weight": 1.0,
-      "rationale": "chance",
-      "created_at": "2026-10-31T02:24:59.100141-04:00"
-    },
-    {
-      "id": 6,
-      "from_node_id": 3,
-      "to_node_id": 7,
-      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
-      "to_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
-      "edge_type": "leads_to",
-      "weight": 1.0,
-      "rationale": "chance",
-      "created_at": "2026-10-31T02:24:59.325051-04:00"
-    },
-    {
-      "id": 7,
-      "from_node_id": 3,
-      "to_node_id": 8,
-      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
-      "to_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
-      "edge_type": "leads_to",
-      "weight": 1.0,
-      "rationale": "chance",
-      "created_at": "2026-10-31T02:24:59.544284-04:00"
     },
     {
       "id": 8,
@@ -254,6 +353,215 @@
       "weight": 1.0,
       "rationale": "realistic DJ economics",
       "created_at": "2026-10-31T02:40:40.793026-04:00"
+    },
+    {
+      "id": 12,
+      "from_node_id": 2,
+      "to_node_id": 14,
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "to_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "applying: chance decides admission",
+      "created_at": "2026-11-02T18:41:13.911635-05:00"
+    },
+    {
+      "id": 13,
+      "from_node_id": 2,
+      "to_node_id": 15,
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "to_change_id": "13bd80e7-897e-47a1-ae84-2cf604bbd31a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "applying: chance decides admission",
+      "created_at": "2026-11-02T18:41:14.109467-05:00"
+    },
+    {
+      "id": 14,
+      "from_node_id": 14,
+      "to_node_id": 16,
+      "from_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "to_change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "summer internship",
+      "created_at": "2026-11-02T18:41:14.418645-05:00"
+    },
+    {
+      "id": 15,
+      "from_node_id": 14,
+      "to_node_id": 5,
+      "from_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "to_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "summer internship",
+      "created_at": "2026-11-02T18:41:14.638841-05:00"
+    },
+    {
+      "id": 16,
+      "from_node_id": 14,
+      "to_node_id": 6,
+      "from_change_id": "8022f1a7-e66e-4752-92ce-e83ae555161c",
+      "to_change_id": "6bbd50eb-aa0b-448d-ad9f-dd2442f96de4",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "summer internship",
+      "created_at": "2026-11-02T18:41:14.921537-05:00"
+    },
+    {
+      "id": 17,
+      "from_node_id": 16,
+      "to_node_id": 4,
+      "from_change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "to_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "return offer",
+      "created_at": "2026-11-02T18:41:15.138929-05:00"
+    },
+    {
+      "id": 18,
+      "from_node_id": 16,
+      "to_node_id": 17,
+      "from_change_id": "b78e4098-d28b-4e19-a0a9-e7ae21c804f5",
+      "to_change_id": "41de27a6-0df9-4328-9585-750c69925c55",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "return offer",
+      "created_at": "2026-11-02T18:41:15.387980-05:00"
+    },
+    {
+      "id": 19,
+      "from_node_id": 3,
+      "to_node_id": 18,
+      "from_change_id": "31f7af18-592f-48b0-be4b-3cb96138c2dd",
+      "to_change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "first year of gigs",
+      "created_at": "2026-11-02T18:41:15.575166-05:00"
+    },
+    {
+      "id": 20,
+      "from_node_id": 18,
+      "to_node_id": 19,
+      "from_change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "to_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "a choice once you're booked",
+      "created_at": "2026-11-02T18:41:15.772776-05:00"
+    },
+    {
+      "id": 21,
+      "from_node_id": 18,
+      "to_node_id": 20,
+      "from_change_id": "f48b000a-30c3-4655-8133-ec7aaf0c9254",
+      "to_change_id": "0af7f0b4-3f61-4511-9dee-1979d34251d5",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "a choice once you're booked",
+      "created_at": "2026-11-02T18:41:15.978299-05:00"
+    },
+    {
+      "id": 22,
+      "from_node_id": 19,
+      "to_node_id": 7,
+      "from_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "to_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "room size, full-time",
+      "created_at": "2026-11-02T18:41:16.176636-05:00"
+    },
+    {
+      "id": 23,
+      "from_node_id": 19,
+      "to_node_id": 8,
+      "from_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "to_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "room size, full-time",
+      "created_at": "2026-11-02T18:41:16.436213-05:00"
+    },
+    {
+      "id": 24,
+      "from_node_id": 19,
+      "to_node_id": 21,
+      "from_change_id": "e6a07c44-19c9-476b-b9c1-e6e04cd4a9b0",
+      "to_change_id": "073cab7e-af3f-423a-a503-5b542b0eaaef",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "room size, full-time",
+      "created_at": "2026-11-02T18:41:16.628964-05:00"
+    },
+    {
+      "id": 25,
+      "from_node_id": 2,
+      "to_node_id": 22,
+      "from_change_id": "7b709d9f-9de5-4c05-93fb-52099a8f9f45",
+      "to_change_id": "eec926f4-5569-4d93-87a7-09c220eddaec",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "revision",
+      "created_at": "2026-11-02T18:41:17.057817-05:00"
+    },
+    {
+      "id": 26,
+      "from_node_id": 4,
+      "to_node_id": 23,
+      "from_change_id": "14349dd7-b44d-48c5-87ca-29b78c0fce3a",
+      "to_change_id": "9bc9ecf9-27b7-426e-b7f2-3739041810af",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "revision",
+      "created_at": "2026-11-02T18:41:17.541356-05:00"
+    },
+    {
+      "id": 27,
+      "from_node_id": 5,
+      "to_node_id": 24,
+      "from_change_id": "ef7a2210-b97b-4795-a34f-084c2cbe2fe6",
+      "to_change_id": "65fd0aef-f62f-4628-81dd-07dc5df7d9df",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "revision",
+      "created_at": "2026-11-02T18:41:18.009096-05:00"
+    },
+    {
+      "id": 28,
+      "from_node_id": 7,
+      "to_node_id": 25,
+      "from_change_id": "531c69f1-de55-4ecb-a6a8-93aac773dd84",
+      "to_change_id": "68b21fc8-89bd-4cbf-b70e-ccbbbdbc75c0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "revision",
+      "created_at": "2026-11-02T18:41:18.433826-05:00"
+    },
+    {
+      "id": 29,
+      "from_node_id": 8,
+      "to_node_id": 26,
+      "from_change_id": "3733a23b-b68b-4175-9d5a-dc40515ac447",
+      "to_change_id": "4d31965e-d3b8-466a-ab75-4e860dfb23c1",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "revision",
+      "created_at": "2026-11-02T18:41:18.853596-05:00"
+    },
+    {
+      "id": 30,
+      "from_node_id": 9,
+      "to_node_id": 27,
+      "from_change_id": "bb4d6b4a-ab1a-40b3-a050-f3592b76b906",
+      "to_change_id": "9084848a-21c6-4459-9601-1ca04f645ab0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "revision",
+      "created_at": "2026-11-02T18:41:19.353950-05:00"
     }
   ]
 }
