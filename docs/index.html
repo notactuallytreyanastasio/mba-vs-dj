@@ -53,11 +53,29 @@
   main { display: grid; grid-template-columns: 1fr 380px; min-height: 0; }
   body.present main { grid-template-columns: 1fr 0; }
   body.present aside { display: none; }
-  #left { display: grid; grid-template-rows: minmax(0, 1.5fr) auto minmax(0, 1fr); min-height: 0; }
+  #left { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; min-height: 0; }
   #treewrap { position: relative; overflow: hidden; display: grid; grid-template-rows: auto 1fr; padding: 8px 12px 0; }
   svg#tree { display: block; width: 100%; height: 100%; min-height: 260px; cursor: grab; touch-action: none; }
   svg#tree:active { cursor: grabbing; }
   .zoomctl { position: absolute; right: 12px; bottom: 10px; display: flex; gap: 4px; }
+  .treehint { order: 9; margin-left: auto; }
+  @media (max-width: 1399px) { .treehint { display: none !important; } }
+  body.present .treehint { display: none; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: default; }
+  button:disabled:hover { background: var(--panel); color: inherit; }
+  .nodechips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+  .nodechips button { font-size: 13px; padding: 2px 8px; border-color: var(--rule); background: #fff; }
+  .nodechips button:hover { border-color: var(--ink); }
+  @media (max-width: 1000px) {
+    body { overflow: auto; display: block; }
+    main { display: block; }
+    #left { height: 92vh; }
+    aside { border-left: 0; border-top: 2px solid var(--ink); display: block; }
+    .tabpanel { overflow: visible; }
+    .treehint { display: none; }
+    body.present aside { display: none; }
+  }
   #tip { position: absolute; z-index: 5; max-width: 340px; pointer-events: none; background: var(--ink); color: var(--paper);
     padding: 8px 10px; border-radius: 4px; font-size: 14px; line-height: 1.45; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
   #tip b { color: #ffd2b8; }
@@ -92,7 +110,7 @@
   .ideaimpact .flip { color: var(--accent); }
   details summary { cursor: pointer; margin: 10px 0 4px; }
   .pilldemo { font-family: var(--mono); font-size: 12px; border: 1px solid var(--muted); border-radius: 8px; padding: 0 6px; }
-  #mathwrap { overflow: auto; padding: 10px 20px 20px; }
+  #mathwrap { overflow: auto; padding: 10px 20px 16px; max-height: 36vh; }
 
   aside {
     border-left: 2px solid var(--ink); background: var(--panel);
@@ -181,6 +199,27 @@
   dialog { border: 2px solid var(--ink); background: var(--panel); max-width: 860px; width: 92vw; padding: 18px; }
   dialog::backdrop { background: rgba(29, 27, 24, .45); }
   dialog textarea { height: 380px; font-family: var(--mono); font-size: 12.5px; }
+  /* guided tour */
+  #tour[hidden] { display: none; }
+  #tour .tourshade { position: fixed; inset: 0; background: rgba(29, 27, 24, .55); z-index: 40; }
+  #tour .tourspot { position: fixed; z-index: 41; border-radius: 6px; pointer-events: none;
+    box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgba(29, 27, 24, .55); transition: all .3s ease; }
+  #tour.spotlit .tourshade { display: none; }
+  #tour .tourcard { position: fixed; z-index: 42; width: min(420px, calc(100vw - 24px)); background: var(--panel);
+    border: 2px solid var(--ink); border-radius: 4px; padding: 16px 18px 12px; box-shadow: 0 12px 36px rgba(0,0,0,.25);
+    transition: top .3s ease, left .3s ease; }
+  #tour .tourcard.welcome { width: min(560px, calc(100vw - 24px)); padding: 26px 28px 18px; }
+  #tour .tourcard h3 { margin: 0 0 8px; font-size: 20px; }
+  #tour .tourcard.welcome h3 { font-size: 28px; }
+  #tour .tourcard.welcome h3 em { color: var(--accent); font-style: normal; }
+  #tour .tourcard p { margin: 0 0 9px; line-height: 1.5; font-size: 15.5px; }
+  #tour .tourcard .try { background: #f6efe4; border-left: 3px solid var(--accent); padding: 5px 9px; font-size: 14.5px; }
+  #tour .tourcard code { font-family: var(--mono); font-size: 13.5px; }
+  #tour .tournav { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  #tour .tournav .count { flex: 1; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  #tour .dots { display: flex; gap: 4px; flex: 1; }
+  #tour .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); }
+  #tour .dots i.on { background: var(--accent); }
   .legend { font-size: 13px; color: var(--muted); display: flex; gap: 16px; padding: 2px 4px; flex-wrap: wrap; }
   .legend span { display: inline-flex; align-items: center; gap: 5px; }
 </style>
@@ -192,6 +231,7 @@
   <div class="spacer"></div>
   <div class="controls">
     <span id="source" class="hint"></span>
+    <button id="tourbtn" title="Walk through how everything works">Tour</button>
     <button id="undo" title="Undo (Ctrl/Cmd+Z)">Undo</button>
     <button id="present" title="Hide the side panel for projecting">Present</button>
   </div>
@@ -204,8 +244,8 @@
         <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#fffdf8" stroke="#1d1b18" stroke-width="1.6"/></svg> chance decides</span>
         <span><svg width="14" height="14"><path d="M13 1 L13 13 L2 7 Z" fill="#fffdf8" stroke="#1d1b18" stroke-width="1.6"/></svg> where you end up</span>
         <span><svg width="22" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#c2410c" stroke-width="3"/></svg> best choice</span>
+        <span class="treehint">Hover for the math · drag a <span class="pilldemo">p</span> to change it · scroll to zoom · double-click to fold</span>
         <span><svg width="22" height="12"><line x1="0" y1="6" x2="22" y2="6" stroke="#1d1b18"/><line x1="8" y1="1" x2="6" y2="11" stroke="#1d1b18" stroke-width="2"/><line x1="13" y1="1" x2="11" y2="11" stroke="#1d1b18" stroke-width="2"/></svg> pruned</span>
-        <span>Hover for the math · drag a <span class="pilldemo">p</span> to change it · scroll to zoom · double-click to fold</span>
       </div>
       <svg id="tree" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="zoomctl"><button class="small" id="zin" title="Zoom in">+</button><button class="small" id="zout" title="Zoom out">−</button><button class="small" id="zfit" title="Fit the tree to the screen">Fit</button></div>
@@ -234,6 +274,12 @@
     <div class="tabpanel" id="tab-deciduous" hidden></div>
   </aside>
 </main>
+
+<div id="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tourtitle">
+  <div class="tourshade"></div>
+  <div class="tourspot"></div>
+  <div class="tourcard"></div>
+</div>
 
 <dialog id="exportdlg">
   <h2>Record this session in deciduous</h2>
@@ -401,7 +447,7 @@ const money = v => {
 };
 const n0 = v => (Math.round(v * 10) / 10).toLocaleString("en-US", { maximumFractionDigits: 1 });
 const pct = p => (Math.round(p * 1000) / 10) + "%";
-const pdec = p => { const r = Math.round(p * 1000) / 1000; return r.toString().replace(/^0\./, "0."); };
+const pdec = p => { const r = Math.round(p * 1000) / 1000; return r.toFixed(Math.round(r * 1000) % 10 ? 3 : 2); };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 /* ------------------------------------------------------------------ *
@@ -843,8 +889,12 @@ function drawEdit(vals) {
       <div class="prow"><input type="range" id="joyw" min="0" max="1000" step="5" value="${joyWeight}"><input type="number" id="joywn" min="0" step="5" value="${joyWeight}"></div></label>
     <p class="hint">Each end point has a satisfaction score from 0 to 10. At 0 the tree is money only. Raise it and ask: how much salary would you trade for a point of happiness?</p>`;
   if (!n) {
-    h += `<h2>Edit</h2><p class="hint">Click a node in the tree to change its name, probability, payoff or cost.</p>`;
-    el.innerHTML = h; bindJoy(); return;
+    const chips = []; walk(tree, m => chips.push(`<button data-pick="${m.id}">${esc(m.title)}</button>`));
+    h += `<h2>Edit</h2><p class="hint">Click a node in the tree, or pick one here, to change its name, probability, payoff or cost, or to grow the tree from it.</p>
+      <div class="nodechips">${chips.join("")}</div>`;
+    el.innerHTML = h; bindJoy();
+    el.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => { selectedId = b.dataset.pick; render(); }));
+    return;
   }
   const parent = parentOf(n.id), k = kindOf(n), pk = parent && kindOf(parent);
   h += `<h2>${k === "decision" ? "Decision" : k === "chance" ? "Chance node" : "End point"}${n.cid ? ` <span style="font-family:var(--mono);font-size:11px;letter-spacing:0">deciduous ${n.cid.slice(0, 8)}</span>` : ` <span style="font-size:11px">new, not in deciduous yet</span>`}</h2>
@@ -967,7 +1017,7 @@ function drawPoll(vals) {
     h += `<div class="pollopt"><span>${esc(c.title)}</span>
       <span class="tally"><button class="small" data-dec="${c.id}">−</button><input type="number" min="0" data-set="${c.id}" value="${v}"><button class="small" data-inc="${c.id}">+</button></span>
       <div class="bar"><i style="width:${share * 100}%"></i></div>
-      <span class="hint">${total ? pct(share) : "—"}${pollTarget !== "gut" ? ` &nbsp; tree has ${pct(c.p)}` : ""}</span></div>`;
+      <span class="hint">${pct(share)}${pollTarget !== "gut" ? ` &nbsp; tree has ${pct(c.p)}` : ""}</span></div>`;
   });
   h += `<p class="hint">${total} ${total === 1 ? "answer" : "answers"}. Count hands, or type in numbers from a quick poll.</p><div class="btnrow">`;
   if (pollTarget === "gut") {
@@ -1592,6 +1642,137 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && selectedId) { selectedId = null; render(); }
 });
 
+
+/* ------------------------------------------------------------------ *
+ * Guided tour
+ *
+ * A welcome card on the first visit, then one step per part of the page.
+ * The spotlight is a ring with a huge shadow and no pointer events, so
+ * whatever it lights up can be tried while the step is open.
+ * ------------------------------------------------------------------ */
+const TOURED = "mba-vs-dj/toured";
+const firstPill = () => [...document.querySelectorAll("#tree g.pill")].find(p => p.getBoundingClientRect().width);
+const firstChance = () => { let n = null; walk(tree, m => { if (!n && kindOf(m) === "chance") n = m; }); return n; };
+const TOUR = [
+  { title: "The verdict", at: () => document.getElementById("verdict"),
+    body: `<p>This line is the answer the tree gives right now, and how far ahead the winner is in expected value.</p>
+      <p>It changes the moment the class changes any number, so keep an eye on it.</p>` },
+  { title: "Reading the tree", at: () => document.getElementById("tree"), pad: -6,
+    body: `<p>Read it left to right. The <b>black square</b> is a choice you make: MBA or DJ. Each <b>circle</b> is chance: you don't get to pick which rooms you play. The <b>triangles</b> are where you end up, with ten-year earnings in $k.</p>
+      <p>The <b style="color:var(--accent)">orange</b> path is the best choice. The <b>‖</b> mark crosses out the path the math rejects.</p>` },
+  { title: "Probabilities you can drag", at: () => firstPill(), pad: 8,
+    body: `<p>Each <span class="pilldemo">p = 0.35</span> is the chance of that outcome. Drag it sideways or scroll on it.</p>
+      <p>The other outcomes under the same circle shrink or grow to make room, because everything that can happen has to add up to 100%.</p>
+      <p class="try">Try it now: drag this one and watch the verdict.</p>` },
+  { title: "Hover for the arithmetic", at: () => { const c = firstChance(); return (c && d3.selectAll("#tree g.node").filter(d => d.data.id === c.id).select(".shape").node()) || document.getElementById("tree"); }, pad: 30,
+    body: `<p>Hover any node to see what it contributes: probability × value, and how likely you are to get there at all.</p>
+      <p>The box above a circle is its <b>expected value</b>, the average outcome if you could live that path many times. Double-click a node to fold its branches away.</p>` },
+  { title: "The math, worked backwards", at: () => document.getElementById("mathwrap"),
+    body: `<p>This is how a decision tree is solved: start at the end points and work back.</p>
+      <p>At a circle, multiply each outcome by its probability and add them up: <code>EV = Σ p × value − cost</code>. At the square, take the biggest. Lines flash yellow when a change moves them.</p>` },
+  { title: "Edit any node", tab: "edit", at: () => document.querySelector("aside"),
+    body: `<p>Click a node, in the tree or in this list, to change its name, probability, earnings, satisfaction or cost.</p>
+      <p>The slider at the top puts a <b>dollar value on satisfaction</b>. At $0 the tree is money only. Raise it and the DJ's happier rooms start to count. For a chance outcome, “What would it take?” shows the probability at which the decision flips.</p>` },
+  { title: "Change it by talking to it", at: () => document.getElementById("aiform"),
+    body: `<p>Type a change in plain English and press <b>Edit tree</b>: “add a producer outcome for DJs, 5%, $600k”. DeepSeek turns it into edits, the site checks them, and Undo reverses the lot.</p>
+      <p><b>Explain to the class</b> narrates the current numbers in two short paragraphs, from figures the site computed itself.</p>` },
+  { title: "Grow the tree with ideas", tab: "ideas", at: () => document.querySelector("aside"),
+    body: `<p>Brainstorm what happens next from any node, or put a student's idea on the board.</p>
+      <p>Hover a card and the idea is drawn into the tree as a <b>dashed ghost</b>, with what it would do to the decision. Nothing changes until someone presses <b>Add</b>. Park the maybes for the next class.</p>` },
+  { title: "Poll the room", tab: "poll", at: () => document.querySelector("aside"),
+    body: `<p>Start with a gut check: hands up, MBA or DJ? Then compare it with the math.</p>
+      <p>Pick a chance node from the menu to ask “out of 100 DJs, how many end up in each room?” and turn the tallies into the tree's probabilities with one button.</p>` },
+  { title: "Watch it grow, go back in time", tab: "history", at: () => document.querySelector("aside"),
+    body: `<p>Every change the class makes is kept. Drag the slider or press <b>Play</b> to replay the tree growing from where it started.</p>
+      <p>Save snapshots (“before the poll”, “after the poll”) and click one to load it. <b>Undo</b> in the top bar steps back one change at a time.</p>` },
+  { title: "Keep it for the next class", tab: "deciduous", at: () => document.querySelector("aside"),
+    body: `<p>The tree lives in a deciduous decision graph. Each node there is a node here, and its notes carry the numbers.</p>
+      <p><b>Write deciduous commands</b> turns this session's changes and parked ideas into commands that record them in the graph. Publish it, and the next class opens where this one left off.</p>` },
+  { title: "Ready for the room", at: () => document.querySelector("header .controls"), pad: 6,
+    body: `<p><b>Present</b> hides the side panel so the tree fills the projector. Press it again to edit.</p>
+      <p>Everything saves in this browser as you go. Bring this tour back any time with <b>Tour</b>.</p>` },
+];
+let tourStep = -1;
+const tourEl = document.getElementById("tour");
+function tourCard() { return tourEl.querySelector(".tourcard"); }
+function tourWelcome() {
+  tourStep = -1;
+  if (document.body.classList.contains("present")) document.getElementById("present").click();
+  tourEl.hidden = false; tourEl.classList.remove("spotlit");
+  const c = tourCard(); c.className = "tourcard welcome";
+  c.innerHTML = `<h3 id="tourtitle">MBA <em>or</em> DJ?</h3>
+    <p>A live decision tree for one question: after college, do you get an MBA or become a DJ?</p>
+    <p>The numbers are a starting guess, there for the class to argue with. Ask a question, change a probability, and the tree redoes the math in front of everyone.</p>
+    <p class="hint">The tour takes about a minute and you can try things as you go. <kbd>←</kbd> <kbd>→</kbd> move between steps, <kbd>Esc</kbd> closes it.</p>
+    <div class="tournav"><span class="count"></span>
+      <button id="tourskip">Skip for now</button><button class="primary" id="tourgo">Show me how it works</button></div>`;
+  c.style.left = Math.max(12, (innerWidth - c.offsetWidth) / 2) + "px";
+  c.style.top = Math.max(12, (innerHeight - c.offsetHeight) / 2.4) + "px";
+  c.querySelector("#tourskip").onclick = tourEnd;
+  c.querySelector("#tourgo").onclick = () => tourGo(0);
+  c.querySelector("#tourgo").focus();
+}
+function tourGo(i) {
+  if (i < 0) return tourWelcome();
+  if (i >= TOUR.length) return tourEnd();
+  tourStep = i;
+  const st = TOUR[i];
+  if (preview) { stopPlay(); showStep(steps().length); }
+  if (st.tab) showTab(st.tab);
+  if (st.tab === "edit") { selectedId = null; render(); }
+  const c = tourCard(); c.className = "tourcard";
+  c.innerHTML = `<h3 id="tourtitle">${st.title}</h3>${st.body}
+    <div class="tournav"><span class="dots">${TOUR.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</span>
+      <button id="tourback">Back</button><button class="primary" id="tournext">${i === TOUR.length - 1 ? "Done" : "Next"}</button></div>`;
+  c.querySelector("#tourback").onclick = () => tourGo(i - 1);
+  c.querySelector("#tournext").onclick = () => tourGo(i + 1);
+  c.querySelector("#tournext").focus({ preventScroll: true });
+  // on narrow screens the side panel is below the tree: bring the target into view first
+  const target = st.at && st.at();
+  if (target) { const r = target.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) target.scrollIntoView({ block: r.height > innerHeight ? "start" : "center" }); }
+  tourPlace();
+}
+function tourPlace() {
+  if (tourEl.hidden || tourStep < 0) return;
+  const st = TOUR[tourStep], target = st.at && st.at();
+  const spot = tourEl.querySelector(".tourspot"), c = tourCard();
+  if (!target || !target.getBoundingClientRect().width) {
+    tourEl.classList.remove("spotlit"); spot.style.width = "0";
+    c.style.left = (innerWidth - c.offsetWidth) / 2 + "px"; c.style.top = (innerHeight - c.offsetHeight) / 2 + "px";
+    return;
+  }
+  tourEl.classList.add("spotlit");
+  const pad = st.pad ?? 6, r = target.getBoundingClientRect();
+  const R = { left: Math.max(4, r.left - pad), top: Math.max(4, r.top - pad) };
+  R.right = Math.min(innerWidth - 4, r.right + pad); R.bottom = Math.min(innerHeight - 4, r.bottom + pad);
+  Object.assign(spot.style, { left: R.left + "px", top: R.top + "px", width: R.right - R.left + "px", height: R.bottom - R.top + "px" });
+  // put the card on whichever side has room, else inside the spot's corner
+  const cw = c.offsetWidth, ch = c.offsetHeight, gap = 14, M = 12;
+  const clampX = x => Math.min(innerWidth - cw - M, Math.max(M, x)), clampY = y => Math.min(innerHeight - ch - M, Math.max(M, y));
+  let x, y;
+  if (innerHeight - R.bottom >= ch + gap + M) { x = clampX(R.left); y = R.bottom + gap; }
+  else if (R.left >= cw + gap + M) { x = R.left - cw - gap; y = clampY(R.top); }
+  else if (innerWidth - R.right >= cw + gap + M) { x = R.right + gap; y = clampY(R.top); }
+  else if (R.top >= ch + gap + M) { x = clampX(R.left); y = R.top - ch - gap; }
+  else { x = clampX(R.right - cw - 20); y = clampY(R.bottom - ch - 20); }
+  c.style.left = x + "px"; c.style.top = y + "px";
+}
+function tourEnd() {
+  tourEl.hidden = true; tourStep = -1;
+  localStorage.setItem(TOURED, "1");
+  if (!document.querySelector(".tabs button.on[data-tab=edit]")) showTab("edit");
+}
+document.getElementById("tourbtn").addEventListener("click", tourWelcome);
+tourEl.querySelector(".tourshade").addEventListener("click", tourEnd);
+addEventListener("scroll", () => tourPlace(), { passive: true });
+addEventListener("resize", () => { if (!tourEl.hidden) tourStep < 0 ? tourWelcome() : tourPlace(); });
+document.addEventListener("keydown", e => {
+  if (tourEl.hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if (e.key === "Escape") { e.stopImmediatePropagation(); tourEnd(); }
+  else if (e.key === "ArrowRight") tourGo(tourStep + 1);
+  else if (e.key === "ArrowLeft" && tourStep >= 0) tourGo(tourStep - 1);
+}, true);
+
 async function boot() {
   let g;
   try {
@@ -1621,7 +1802,13 @@ async function boot() {
   }
   initTree();
   render();
-  window.addEventListener("resize", () => fit(false));
+  let lastBox = "";
+  new ResizeObserver(([e]) => {
+    const box = Math.round(e.contentRect.width) + "x" + Math.round(e.contentRect.height);
+    if (box !== lastBox) { lastBox = box; fit(false); }
+  }).observe(document.getElementById("tree"));
+  const forced = new URLSearchParams(location.search).has("tour");
+  if (forced || !localStorage.getItem(TOURED)) setTimeout(tourWelcome, 350);
 }
 boot();
 </script>

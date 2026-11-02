@@ -77,7 +77,8 @@ Explain the current tree to the class, out loud, as the teacher would. Plain lan
 at most 170 words. Walk backwards from the end points: what each path is worth on average and why, which choice the math picks
 and by how much, and the single number in the tree that the decision is most sensitive to (say how far it would have to move to flip it, if it can).
 The site has already done the arithmetic and lists it under "Facts". Use those numbers exactly; do not compute or invent new ones.
-If joyWeight is above 0, say how satisfaction is being priced. Address the students as "you".`;
+If joyWeight is above 0, say how satisfaction is being priced. Address the students as "you".
+Never say field names such as joyWeight, payoff, cid or p= out loud: say "the value of satisfaction", "earnings", "the chance".`;
 
 const EDIT_TOOL = {
   type: "function",
